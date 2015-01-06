@@ -21,6 +21,9 @@ public class VoicerFacade {
 	
 	private SipManager sipManager;
 	private SipProfile sipProfile;
+	private String usuario;
+	private String senha;
+	private String usuarioPeer;
 	
 	public static VoicerFacade getInstance() {
 		if (facade == null)
@@ -36,8 +39,8 @@ public class VoicerFacade {
 	 */
 	public void createSipManager(Context context) throws ParseException {
 		sipManager = SipManager.newInstance(context);
-		SipProfile.Builder builder = new SipProfile.Builder("sixinf", "sip.linphone.org");
-		builder.setPassword("mariana123");
+		SipProfile.Builder builder = new SipProfile.Builder(usuario, "sip.linphone.org");
+		builder.setPassword(senha);
 		sipProfile = builder.build();
 	}
 
@@ -55,6 +58,30 @@ public class VoicerFacade {
 
 	public void setSipProfile(SipProfile sipProfile) {
 		this.sipProfile = sipProfile;
+	}
+
+	public String getUsuario() {
+		return usuario;
+	}
+
+	public void setUsuario(String usuario) {
+		this.usuario = usuario;
+	}
+
+	public String getSenha() {
+		return senha;
+	}
+
+	public void setSenha(String senha) {
+		this.senha = senha;
+	}
+
+	public String getUsuarioPeer() {
+		return usuarioPeer;
+	}
+
+	public void setUsuarioPeer(String usuarioPeer) {
+		this.usuarioPeer = usuarioPeer;
 	}
 	
 }

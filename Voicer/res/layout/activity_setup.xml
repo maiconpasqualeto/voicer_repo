@@ -4,54 +4,53 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <TextView
-        android:id="@+id/lblNomePeer"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/lblUsuario"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Usuário:" />
+
+        <EditText
+            android:id="@+id/txtUsuario"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10" >
+
+            <requestFocus />
+        </EditText>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/lblSenha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Senha:" />
+
+        <EditText
+            android:id="@+id/txtSenha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:inputType="textPassword" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnLogar"
+        style="?android:attr/buttonStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Nome a ser chamado:" />
+        android:text="Logar" />
 
-    <EditText
-        android:id="@+id/txtNomePeer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10" >
-
-        <requestFocus />
-    </EditText>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-
-        <Button
-            android:id="@+id/btnChamar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Chamar" />
-
-        <Button
-            android:id="@+id/btnEncerrar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Encerrar" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-
-        <TextView
-            android:id="@+id/lblStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Status: " />
-
-        <TextView
-            android:id="@+id/txtStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Conectando..." />
-    </LinearLayout>
-    
 </LinearLayout>

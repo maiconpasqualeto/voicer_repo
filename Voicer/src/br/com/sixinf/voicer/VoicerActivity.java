@@ -15,16 +15,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class VoicerActivity extends Activity {
 	
-	private SipAudioCall audioCall;
+	private SipAudioCall chamadaRecebida;
+	private SipAudioCall chamadaEncaminhada;
 	
 	private VoicerFacade facade;
 	private TextView txtStatus;
 	private VoicerChamadaRecebida chamadaRecebidaReceiver;
-
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -33,11 +36,48 @@ public class VoicerActivity extends Activity {
 		if (facade == null)
 			 facade = VoicerFacade.getInstance();
 		
+		final EditText txtNomePeer = (EditText) findViewById(R.id.txtNomePeer);
+		if (facade.getUsuario().equals("maiconpas"))
+			txtNomePeer.setText("sixinf");
+		else
+			if (facade.getUsuario().equals("sixinf"))
+				txtNomePeer.setText("maiconpas");
+		
 		Button btnChamar = (Button) findViewById(R.id.btnChamar);
 		btnChamar.setOnClickListener(new View.OnClickListener() {				
 			@Override
 			public void onClick(View v) {
-				fazerChamada();
+				String nomePeer = txtNomePeer.getText().toString();
+				if (nomePeer.isEmpty())
+					Toast.makeText(VoicerActivity.this, 
+							"Nome para chamar não pode ser vazio", Toast.LENGTH_SHORT).show();
+				else 
+					fazerChamada(nomePeer);
+			}
+		});
+		
+		Button btnEncerrar = (Button) findViewById(R.id.btnEncerrar);
+		btnEncerrar.setOnClickListener(new View.OnClickListener() {				
+			@Override
+			public void onClick(View v) {
+				
+				SipAudioCall chamada = null;
+				
+				if (chamadaRecebida != null &&
+						chamadaRecebida.isInCall())
+					chamada = chamadaRecebida;
+				else 
+					if (chamadaEncaminhada != null &&
+						chamadaEncaminhada.isInCall())
+					chamada = chamadaEncaminhada;
+				try {
+					
+					chamada.endCall();
+					
+				} catch (SipException e) {
+					Log.e("VOICER", "Erro ao encerrar chamada", e);
+				}
+				
 			}
 		});
 		
@@ -76,18 +116,17 @@ public class VoicerActivity extends Activity {
 				@Override
 				public void onRegistrationFailed(String localProfileUri, int errorCode,
 						String errorMessage) {
-					updateStatus("Registration failed. " + errorMessage);					
-					
+					updateStatus("Falha ao registrar, verifique as configurações. " + errorMessage);					
 				}
 				
 				@Override
 				public void onRegistrationDone(String localProfileUri, long expiryTime) {
-					updateStatus("Ready");
+					updateStatus("Pronto");
 				}
 				
 				@Override
 				public void onRegistering(String localProfileUri) {
-					updateStatus("Registering with SIP Server...");
+					updateStatus("Registrando no servidor SIP...");
 				}
 			});
 		
@@ -96,7 +135,11 @@ public class VoicerActivity extends Activity {
 		}
 	}
 
-	private void fazerChamada() {
+	/**
+	 * 
+	 * @param nomePeer
+	 */
+	private void fazerChamada(String nomePeer) {
 		try {
 		
 			SipAudioCall.Listener listener = new SipAudioCall.Listener() {
@@ -109,20 +152,21 @@ public class VoicerActivity extends Activity {
 	
 				@Override
 				public void onCallEnded(SipAudioCall call) {
-					updateStatus("Call ended");
+					updateStatus("Pronto");
 				}
 				
 				@Override
 				public void onError(SipAudioCall call, int errorCode,
 						String errorMessage) {
-					updateStatus(errorMessage);
+					updateStatus("ERRO - " + errorMessage);
 				}
 			};
 			
 			SipManager sipManager = facade.getSipManager();
 			SipProfile sipProfile = facade.getSipProfile();
 			
-			audioCall = sipManager.makeAudioCall(sipProfile.getUriString(), "sip:maiconpas@sip.linphone.org", listener, 30);
+			chamadaEncaminhada = sipManager.makeAudioCall(
+					sipProfile.getUriString(), "sip:" + nomePeer + "@sip.linphone.org", listener, 30);
 			
 		} catch (SipException e) {
 			Log.e("VOICER", "Erro ao fazer chamada", e);
@@ -153,8 +197,11 @@ public class VoicerActivity extends Activity {
 	protected void onDestroy() {
 		super.onDestroy();
 		
-		if (audioCall != null)
-			audioCall.close();
+		if (chamadaRecebida != null)
+			chamadaRecebida.close();
+		
+		if (chamadaEncaminhada != null)
+			chamadaEncaminhada.close();
         
 		closeLocalProfile();
 		
@@ -183,11 +230,11 @@ public class VoicerActivity extends Activity {
 	}
 
 	public SipAudioCall getAudioCall() {
-		return audioCall;
+		return chamadaRecebida;
 	}
 
 	public void setAudioCall(SipAudioCall audioCall) {
-		this.audioCall = audioCall;
+		this.chamadaRecebida = audioCall;
 	}
 	
 	/**
