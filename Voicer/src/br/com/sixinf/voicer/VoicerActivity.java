@@ -61,22 +61,7 @@ public class VoicerActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				
-				SipAudioCall chamada = null;
-				
-				if (chamadaRecebida != null &&
-						chamadaRecebida.isInCall())
-					chamada = chamadaRecebida;
-				else 
-					if (chamadaEncaminhada != null &&
-						chamadaEncaminhada.isInCall())
-					chamada = chamadaEncaminhada;
-				try {
-					
-					chamada.endCall();
-					
-				} catch (SipException e) {
-					Log.e("VOICER", "Erro ao encerrar chamada", e);
-				}
+				encerrarChamada();
 				
 			}
 		});
@@ -248,6 +233,28 @@ public class VoicerActivity extends Activity {
 				VoicerActivity.this.txtStatus.setText(status);
 			}
 		});
+	}
+	
+	/**
+	 * 
+	 */
+	public void encerrarChamada(){
+		try {
+			
+			if (chamadaRecebida != null &&
+					chamadaRecebida.isInCall()) {
+				chamadaRecebida.endCall();
+			} else 
+				if (chamadaEncaminhada != null &&
+					chamadaEncaminhada.isInCall()) {
+				chamadaEncaminhada.endCall();				
+			}
+			
+			updateStatus("Pronto");
+			
+		} catch (SipException e) {
+			Log.e("VOICER", "Erro ao encerrar chamada", e);
+		}
 	}
 			
 }

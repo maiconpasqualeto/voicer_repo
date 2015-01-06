@@ -42,6 +42,7 @@ public class VoicerChamadaRecebida extends BroadcastReceiver {
                 @Override
                 public void onCallEnded(SipAudioCall call) {
                 	wtActivity.updateStatus("Pronto");
+                	//wtActivity.encerrarChamada();
                 }
             };
             
