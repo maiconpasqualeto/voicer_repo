@@ -133,6 +133,7 @@ public class VoicerActivity extends Activity {
 				public void onCallEstablished(SipAudioCall call) {
 					call.startAudio();
 					call.setSpeakerMode(true);
+					updateStatus("Chamada realizada em andamento...");
 				}
 	
 				@Override
@@ -184,7 +185,7 @@ public class VoicerActivity extends Activity {
 		
 		if (chamadaRecebida != null)
 			chamadaRecebida.close();
-		
+				
 		if (chamadaEncaminhada != null)
 			chamadaEncaminhada.close();
         

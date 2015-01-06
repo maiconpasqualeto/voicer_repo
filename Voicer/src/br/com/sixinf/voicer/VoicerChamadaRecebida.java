@@ -27,8 +27,7 @@ public class VoicerChamadaRecebida extends BroadcastReceiver {
                 @Override
                 public void onRinging(SipAudioCall call, SipProfile caller) {
                     try {
-                    	wtActivity.updateStatus("Chamando...");
-                        call.answerCall(30);                        
+                    	call.answerCall(30);                        
                     } catch (Exception e) {
                         Log.e("VOICER", "Erro ao atender chamada", e);
                     }
@@ -36,13 +35,12 @@ public class VoicerChamadaRecebida extends BroadcastReceiver {
                 
                 @Override
                 public void onCallEstablished(SipAudioCall call) {
-                	wtActivity.updateStatus("Atendido, chamada em andamento...");
+                	wtActivity.updateStatus("Chamada recebida em andamento...");
                 }
                 
                 @Override
                 public void onCallEnded(SipAudioCall call) {
                 	wtActivity.updateStatus("Pronto");
-                	//wtActivity.encerrarChamada();
                 }
             };
             
