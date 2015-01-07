@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.sip.SipAudioCall;
 import android.net.sip.SipProfile;
-import android.net.sip.SipSession;
 import android.util.Log;
 
 /**
@@ -49,9 +48,10 @@ public class VoicerChamadaRecebida extends BroadcastReceiver {
             incomingCall.startAudio();
             incomingCall.setSpeakerMode(true);
             
-            wtActivity.setAudioCall(incomingCall);
+            VoicerFacade.getInstance().setChamadaRecebida(incomingCall);
             //wtActivity.updateStatus(SipSession.State.toString(incomingCall.getState()));
         } catch (Exception e) {
+        	Log.e("VOICER", "Erro no receiver da chamada recebida", e);
             if (incomingCall != null) {
                 incomingCall.close();
             }

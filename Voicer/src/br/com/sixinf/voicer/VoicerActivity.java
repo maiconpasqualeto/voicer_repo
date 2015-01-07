@@ -1,14 +1,8 @@
 package br.com.sixinf.voicer;
 
 import android.app.Activity;
-import android.app.PendingIntent;
-import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.sip.SipAudioCall;
 import android.net.sip.SipException;
-import android.net.sip.SipManager;
-import android.net.sip.SipProfile;
-import android.net.sip.SipRegistrationListener;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -21,10 +15,6 @@ import android.widget.Toast;
 
 public class VoicerActivity extends Activity {
 	
-	private SipAudioCall chamadaRecebida;
-	private SipAudioCall chamadaEncaminhada;
-	
-	private VoicerFacade facade;
 	private TextView txtStatus;
 	private VoicerChamadaRecebida chamadaRecebidaReceiver;
 	
@@ -33,14 +23,12 @@ public class VoicerActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_voicer);
 		
-		if (facade == null)
-			 facade = VoicerFacade.getInstance();
 		
 		final EditText txtNomePeer = (EditText) findViewById(R.id.txtNomePeer);
-		if (facade.getUsuario().equals("maiconpas"))
+		if (VoicerFacade.getInstance().getUsuario().equals("maiconpas"))
 			txtNomePeer.setText("sixinf");
 		else
-			if (facade.getUsuario().equals("sixinf"))
+			if (VoicerFacade.getInstance().getUsuario().equals("sixinf"))
 				txtNomePeer.setText("maiconpas");
 		
 		Button btnChamar = (Button) findViewById(R.id.btnChamar);
@@ -86,35 +74,8 @@ public class VoicerActivity extends Activity {
 		
 		try {
 		
-			facade.createSipManager(this);
-			
-			SipManager sipManager = facade.getSipManager();
-			SipProfile sipProfile = facade.getSipProfile();
-			
-			Intent intent = new Intent();
-			intent.setAction("android.SipDemo.INCOMING_CALL");
-			PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, Intent.FILL_IN_DATA);
-			sipManager.open(sipProfile, pendingIntent, null);
-			
-			sipManager.setRegistrationListener(sipProfile.getUriString(), new SipRegistrationListener() {
-				
-				@Override
-				public void onRegistrationFailed(String localProfileUri, int errorCode,
-						String errorMessage) {
-					updateStatus("Falha ao registrar, verifique as configurações. " + errorMessage);					
-				}
-				
-				@Override
-				public void onRegistrationDone(String localProfileUri, long expiryTime) {
-					updateStatus("Pronto");
-				}
-				
-				@Override
-				public void onRegistering(String localProfileUri) {
-					updateStatus("Registrando no servidor SIP...");
-				}
-			});
-		
+			VoicerFacade.getInstance().createSipManager(this);
+					
 		} catch (Exception e) {
 			Log.e("VOICER", "Erro ao criar SIP", e);
 		}
@@ -127,32 +88,7 @@ public class VoicerActivity extends Activity {
 	private void fazerChamada(String nomePeer) {
 		try {
 		
-			SipAudioCall.Listener listener = new SipAudioCall.Listener() {
-	
-				@Override
-				public void onCallEstablished(SipAudioCall call) {
-					call.startAudio();
-					call.setSpeakerMode(true);
-					updateStatus("Chamada realizada em andamento...");
-				}
-	
-				@Override
-				public void onCallEnded(SipAudioCall call) {
-					updateStatus("Pronto");
-				}
-				
-				@Override
-				public void onError(SipAudioCall call, int errorCode,
-						String errorMessage) {
-					updateStatus("ERRO - " + errorMessage);
-				}
-			};
-			
-			SipManager sipManager = facade.getSipManager();
-			SipProfile sipProfile = facade.getSipProfile();
-			
-			chamadaEncaminhada = sipManager.makeAudioCall(
-					sipProfile.getUriString(), "sip:" + nomePeer + "@sip.linphone.org", listener, 30);
+			VoicerFacade.getInstance().fazerChamada(this, nomePeer);
 			
 		} catch (SipException e) {
 			Log.e("VOICER", "Erro ao fazer chamada", e);
@@ -182,22 +118,21 @@ public class VoicerActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		
-		if (chamadaRecebida != null)
-			chamadaRecebida.close();
-				
-		if (chamadaEncaminhada != null)
-			chamadaEncaminhada.close();
-        
-		closeLocalProfile();
-		
+		try {
+			
+			VoicerFacade.getInstance().closeLocalProfile();
+			
+		} catch (SipException e) {
+			Log.e("VOICER", "Erro ao encerrar perfil", e);
+		}
+			
 		if (chamadaRecebidaReceiver != null) 
 			unregisterReceiver(chamadaRecebidaReceiver);
 	}
 	
 	/**
 	 * 
-	 */
+	 
 	public void closeLocalProfile() {
 		SipManager sipManager = facade.getSipManager();
 		SipProfile sipProfile = facade.getSipProfile();
@@ -213,15 +148,7 @@ public class VoicerActivity extends Activity {
 	     } catch (Exception ee) {
 	       Log.d("VOICER", "Failed to close local profile.", ee);
 	     }
-	}
-
-	public SipAudioCall getAudioCall() {
-		return chamadaRecebida;
-	}
-
-	public void setAudioCall(SipAudioCall audioCall) {
-		this.chamadaRecebida = audioCall;
-	}
+	}*/
 	
 	/**
 	 * 
@@ -231,7 +158,7 @@ public class VoicerActivity extends Activity {
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				VoicerActivity.this.txtStatus.setText(status);
+				txtStatus.setText(status);
 			}
 		});
 	}
@@ -242,14 +169,7 @@ public class VoicerActivity extends Activity {
 	public void encerrarChamada(){
 		try {
 			
-			if (chamadaRecebida != null &&
-					chamadaRecebida.isInCall()) {
-				chamadaRecebida.endCall();
-			} else 
-				if (chamadaEncaminhada != null &&
-					chamadaEncaminhada.isInCall()) {
-				chamadaEncaminhada.endCall();				
-			}
+			VoicerFacade.getInstance().encerraTodasChamada();
 			
 			updateStatus("Pronto");
 			
