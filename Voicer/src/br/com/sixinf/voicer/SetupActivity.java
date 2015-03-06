@@ -22,13 +22,14 @@ public class SetupActivity extends Activity {
 		btnLogar.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				VoicerFacade.getInstance().setUsuario(txtUsuario.getText().toString());
+				/*VoicerFacade.getInstance().setUsuario(txtUsuario.getText().toString());
 				VoicerFacade.getInstance().setSenha(txtSenha.getText().toString());
 				Intent i = new Intent(SetupActivity.this, VoicerActivity.class);
-				startActivity(i);
+				startActivity(i);*/
+				VoicerService s = new VoicerService(SetupActivity.this);
+				s.sipRegister();
 			}
 		});
-		
 	}
 
 	@Override
