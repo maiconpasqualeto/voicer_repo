@@ -10,24 +10,28 @@ import android.widget.Button;
 import android.widget.EditText;
 
 public class SetupActivity extends Activity {
-
+	
+	private EditText txtUsuario;
+	private EditText txtSenha;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_setup);
 		
-		final EditText txtUsuario = (EditText) findViewById(R.id.txtUsuario);
-		final EditText txtSenha = (EditText) findViewById(R.id.txtSenha);
+		// Inicializa a fachada e a engine do Audio
+		VoicerFacade.getInstance().setMainActivity(this);
+		VoicerFacade.getInstance().startSipService();
+		
+		txtUsuario = (EditText) findViewById(R.id.txtUsuario);
+		txtSenha = (EditText) findViewById(R.id.txtSenha);
 		Button btnLogar = (Button) findViewById(R.id.btnLogar);
 		btnLogar.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				/*VoicerFacade.getInstance().setUsuario(txtUsuario.getText().toString());
+				VoicerFacade.getInstance().setUsuario(txtUsuario.getText().toString());
 				VoicerFacade.getInstance().setSenha(txtSenha.getText().toString());
-				Intent i = new Intent(SetupActivity.this, VoicerActivity.class);
-				startActivity(i);*/
-				VoicerService s = new VoicerService(SetupActivity.this);
-				s.sipRegister();
+				VoicerFacade.getInstance().registerNoServidorSIP();
 			}
 		});
 	}
@@ -49,5 +53,24 @@ public class SetupActivity extends Activity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	/**
+	 * 
+	 * @param data
+	 */
+	public void updateStatusRegistroSIP(final StatusRegistroSIP status) {
+		if (status.equals(StatusRegistroSIP.REGISTRADO)) {
+			Intent i = new Intent(SetupActivity.this, VoicerActivity.class);
+			startActivity(i);
+		} else {
+			runOnUiThread(new Runnable() {
+				
+				@Override
+				public void run() {
+					txtUsuario.setText(status.name());
+				}
+			});
+		}
 	}
 }

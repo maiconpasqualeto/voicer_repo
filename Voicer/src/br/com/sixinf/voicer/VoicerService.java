@@ -3,6 +3,8 @@
  */
 package br.com.sixinf.voicer;
 
+import java.util.Observable;
+
 import org.doubango.ngn.NgnEngine;
 import org.doubango.tinyWRAP.DialogEvent;
 import org.doubango.tinyWRAP.RegistrationEvent;
@@ -19,25 +21,45 @@ import android.util.Log;
  * @author maicon
  *
  */
-public class VoicerService {
+public class VoicerService extends Observable {
 		
 	private RegistrationSession registrationSession;
 	private final NgnEngine engine;
-	
+	private SipStack sipStack;
+			
 	public VoicerService(Activity context) {
 		//Voicer c = new Voicer();
 		// Sets main activity (should be done before starting services)
 		engine = NgnEngine.getInstance();
 		engine.setMainActivity(context);
 	}
+	
+	/**
+	 * 
+	 */
+	public void startEngine() {
+		final Thread thread = new Thread(new Runnable(){
+			@Override
+			public void run() {
+				if(!engine.isStarted()){
+					Log.d("VOICER", "Starts the engine");
+					engine.start();
+				}
+			}
+		});
+		thread.setPriority(Thread.MAX_PRIORITY);
+		thread.start();
+	}
 
-	public void sipRegister() {
-		
+	/**
+	 * 
+	 */
+	public void sipRegister(String usuario, String senha) {
 		
 		final String realm = "sip:linphone.org";
 		final String publicIdentity = "sip:maiconpas@sip.linphone.org";
-		final String privateIdentity = "maiconpas";
-		final String password = "mariana123";
+		/*final String privateIdentity = "maiconpas";
+		final String password = "mariana123";*/
 		final String proxyHost = "sip.linphone.org";
 		// Sip Callback
 		final SipCallback callback = new SipCallback(){
@@ -52,13 +74,17 @@ public class VoicerService {
 					case
 						tinyWRAPConstants.tsip_event_code_dialog_connecting:
 						if(registrationSession != null && registrationSession.getId() == sipSessionId){
-							Log.d("VOICER", "Tentando registrar....");							
+							Log.d("VOICER", "Tentando registrar....");
+							setChanged();
+							notifyObservers(StatusRegistroSIP.SOLICITANDO_REGISTRO);
 						}
 						break;
 					case
 						tinyWRAPConstants.tsip_event_code_dialog_connected:
 						if(registrationSession != null && registrationSession.getId() == sipSessionId){
-							Log.d("VOICER", "Registrado...");
+							Log.d("VOICER", "Registrado");
+							setChanged();
+							notifyObservers(StatusRegistroSIP.REGISTRADO);							
 						}
 						break;
 					case
@@ -71,6 +97,8 @@ public class VoicerService {
 						tinyWRAPConstants.tsip_event_code_dialog_terminated:
 						if(registrationSession !=null && registrationSession.getId() == sipSessionId){
 							Log.d("VOICER", "Não registrado....");
+							setChanged();
+							notifyObservers(StatusRegistroSIP.NAO_REGISTRADO);
 						}
 						break;
 				}
@@ -84,11 +112,11 @@ public class VoicerService {
 			}
 		};
 		// Create the SipStack
-		SipStack sipStack = new SipStack(callback, realm, privateIdentity, publicIdentity);
+		sipStack = new SipStack(callback, realm, usuario, publicIdentity);
 		// Set Proxy Host and port
 		sipStack.setProxyCSCF(proxyHost, 5060, "UDP", "IPv4");
 		// Set password
-		sipStack.setPassword(password);
+		sipStack.setPassword(senha);
 		if(sipStack.isValid()){
 			if(sipStack.start()){
 				registrationSession = new RegistrationSession(sipStack);
@@ -97,6 +125,14 @@ public class VoicerService {
 				registrationSession.register_();
 			}
 		}
+	}
+	
+	/**
+	 * 
+	 */
+	public void sipUnregister() {
+		if (registrationSession != null)
+			registrationSession.unRegister();
 	}
 	
 }

@@ -4,6 +4,8 @@
 package br.com.sixinf.voicer;
 
 import java.text.ParseException;
+import java.util.Observable;
+import java.util.Observer;
 
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -17,7 +19,7 @@ import android.net.sip.SipRegistrationListener;
  * @author maicon
  *
  */
-public class VoicerFacade {
+public class VoicerFacade implements Observer {
 	
 	private static VoicerFacade facade;
 	
@@ -28,12 +30,26 @@ public class VoicerFacade {
 	private String usuarioPeer;
 	private SipAudioCall chamadaRecebida;
 	private SipAudioCall chamadaEncaminhada;
+	private SetupActivity mainActivity;
+	private VoicerService voicerService;
 	
 	public static VoicerFacade getInstance() {
 		if (facade == null)
 			facade = new VoicerFacade();
 		
 		return facade;
+	}
+	
+	/**
+	 * 
+	 */
+	public void startSipService() {
+		if (mainActivity == null)
+			throw new UnsupportedOperationException("Main activity must be set");
+				
+		voicerService = new VoicerService(mainActivity);
+		voicerService.addObserver(this);
+		voicerService.startEngine();
 	}
 
 	/**
@@ -144,6 +160,16 @@ public class VoicerFacade {
 		
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
+	public void registerNoServidorSIP() {
+		
+		voicerService.sipRegister(usuario, senha);
+		
+	}
+	
 	public SipManager getSipManager() {
 		return sipManager;
 	}
@@ -198,6 +224,22 @@ public class VoicerFacade {
 
 	public void setChamadaEncaminhada(SipAudioCall chamadaEncaminhada) {
 		this.chamadaEncaminhada = chamadaEncaminhada;
+	}
+
+	public SetupActivity getMainActivity() {
+		return mainActivity;
+	}
+
+	public void setMainActivity(SetupActivity mainActivity) {
+		this.mainActivity = mainActivity;
+	}
+
+	@Override
+	public void update(Observable observable, Object data) {
+		if (data instanceof StatusRegistroSIP) {
+			mainActivity.updateStatusRegistroSIP((StatusRegistroSIP) data);
+		}
+			
 	}
 
 	

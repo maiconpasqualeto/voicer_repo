@@ -58,12 +58,12 @@ public class VoicerActivity extends Activity {
 		txtStatus.setText("Idle");
 		
 		// Registrar Receiver
-		IntentFilter filter = new IntentFilter();
+		/*IntentFilter filter = new IntentFilter();
         filter.addAction("android.SipDemo.INCOMING_CALL");
         chamadaRecebidaReceiver = new VoicerChamadaRecebida();
-        this.registerReceiver(chamadaRecebidaReceiver, filter);
+        this.registerReceiver(chamadaRecebidaReceiver, filter);*/
 		
-        registrarServicoSIP();
+        //registrarServicoSIP();
 		
 	}
 	
