@@ -34,11 +34,11 @@ public class VoicerService {
 	public void sipRegister() {
 		
 		
-		final String realm = "sip.linphone.org";
+		final String realm = "sip:linphone.org";
+		final String publicIdentity = "sip:maiconpas@sip.linphone.org";
 		final String privateIdentity = "maiconpas";
-		final String publicIdentity = "maiconpas@sip.linphone.org";
 		final String password = "mariana123";
-		final String proxyHost = "sip.linphone.org";		
+		final String proxyHost = "sip.linphone.org";
 		// Sip Callback
 		final SipCallback callback = new SipCallback(){
 		
@@ -47,7 +47,7 @@ public class VoicerService {
 				final SipSession sipSession = e.getBaseSession();
 				final long sipSessionId = sipSession.getId();
 				final short code = e.getCode();
-				
+				Log.d("VOICER", "Register return code: " + code);	
 				switch (code){
 					case
 						tinyWRAPConstants.tsip_event_code_dialog_connecting:
