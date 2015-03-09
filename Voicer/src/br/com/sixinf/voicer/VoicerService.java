@@ -13,6 +13,7 @@ import org.doubango.tinyWRAP.SipStack;
 import org.doubango.tinyWRAP.tinyWRAPConstants;
 
 import android.app.Activity;
+import android.util.Log;
 
 /**
  * @author maicon
@@ -51,25 +52,25 @@ public class VoicerService {
 					case
 						tinyWRAPConstants.tsip_event_code_dialog_connecting:
 						if(registrationSession != null && registrationSession.getId() == sipSessionId){
-						// Registration in progress
+							Log.d("VOICER", "Tentando registrar....");							
 						}
 						break;
 					case
 						tinyWRAPConstants.tsip_event_code_dialog_connected:
 						if(registrationSession != null && registrationSession.getId() == sipSessionId){
-						//are registered
+							Log.d("VOICER", "Registrado...");
 						}
 						break;
 					case
 						tinyWRAPConstants.tsip_event_code_dialog_terminating:
 						if(registrationSession != null && registrationSession.getId() == sipSessionId){
-							// are unregistering
+							Log.d("VOICER", "Desregistrando....");
 						}
 						break;
 					case
 						tinyWRAPConstants.tsip_event_code_dialog_terminated:
 						if(registrationSession !=null && registrationSession.getId() == sipSessionId){
-							// are unregistered
+							Log.d("VOICER", "Não registrado....");
 						}
 						break;
 				}
