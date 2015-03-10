@@ -165,8 +165,8 @@ public class VoicerFacade implements Observer {
 	 * @return
 	 */
 	public void registerNoServidorSIP() {
-		
-		voicerService.sipRegister(usuario, senha);
+		voicerService.setupConfig(usuario, senha);
+		voicerService.sipRegister();
 		
 	}
 	

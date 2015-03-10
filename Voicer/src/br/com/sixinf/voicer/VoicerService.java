@@ -7,8 +7,10 @@ import java.util.Observable;
 
 import org.doubango.ngn.NgnEngine;
 import org.doubango.ngn.media.NgnMediaType;
+import org.doubango.ngn.services.INgnConfigurationService;
 import org.doubango.ngn.services.INgnSipService;
 import org.doubango.ngn.sip.NgnAVSession;
+import org.doubango.ngn.utils.NgnConfigurationEntry;
 import org.doubango.tinyWRAP.DialogEvent;
 import org.doubango.tinyWRAP.RegistrationEvent;
 import org.doubango.tinyWRAP.RegistrationSession;
@@ -28,13 +30,15 @@ public class VoicerService extends Observable {
 		
 	private RegistrationSession registrationSession;
 	private final NgnEngine engine;
-	private SipStack sipStack;
+	//private SipStack sipStack;
+	private INgnSipService sipService;
 			
 	public VoicerService(Activity context) {
 		//Voicer c = new Voicer();
 		// Sets main activity (should be done before starting services)
 		engine = NgnEngine.getInstance();
 		engine.setMainActivity(context);
+		sipService = engine.getSipService();
 	}
 	
 	/**
@@ -53,19 +57,63 @@ public class VoicerService extends Observable {
 		thread.setPriority(Thread.MAX_PRIORITY);
 		thread.start();
 	}
+	
+	/**
+	 * 	 
+	 * @param usuario
+	 * @param senha
+	 */
+	public void setupConfig(String usuario, String senha) {
+		String realm = "sip:linphone.org";
+		String publicIdentity = "sip:maiconpas@sip.linphone.org";
+		/*String privateIdentity = "maiconpas";
+		String password = "mariana123";*/
+		String proxyHost = "sip.linphone.org";
+		int port = 5060;
+		
+		NgnEngine mEngine = NgnEngine.getInstance();
+		INgnConfigurationService mConfigurationService = mEngine.getConfigurationService();
+		mConfigurationService.putString(
+				NgnConfigurationEntry.IDENTITY_IMPI, usuario);
+		mConfigurationService.putString(
+				NgnConfigurationEntry.IDENTITY_IMPU, publicIdentity);
+		mConfigurationService.putString(
+				NgnConfigurationEntry.IDENTITY_PASSWORD, senha);
+		mConfigurationService.putString(
+				NgnConfigurationEntry.NETWORK_PCSCF_HOST, proxyHost);
+		mConfigurationService.putInt(
+				NgnConfigurationEntry.NETWORK_PCSCF_PORT, port);
+		mConfigurationService.putString(
+				NgnConfigurationEntry.NETWORK_REALM, realm);
+		// By default, using 3G for calls disabled
+		mConfigurationService.putBoolean(
+				NgnConfigurationEntry.NETWORK_USE_3G, true);
+		// You may want to leave the registration timeout to the default 1700 seconds
+		mConfigurationService.putInt(
+				NgnConfigurationEntry.NETWORK_REGISTRATION_TIMEOUT, 3600);
+		mConfigurationService.commit();
+	}
 
 	/**
 	 * 
 	 */
-	public void sipRegister(String usuario, String senha) {
+	public void sipRegister() {
 		
-		final String realm = "sip:linphone.org";
+		// Register
+		if (!sipService.isRegistered()) {
+			sipService.register(engine.getMainActivity());
+		}
+		
+		/*final String realm = "sip:linphone.org";
 		final String publicIdentity = "sip:maiconpas@sip.linphone.org";
-		/*final String privateIdentity = "maiconpas";
-		final String password = "mariana123";*/
-		final String proxyHost = "sip.linphone.org";
+		final String privateIdentity = "maiconpas";
+		final String password = "mariana123";
+		final String proxyHost = "sip.linphone.org";*/
+		
+		
+		
 		// Sip Callback
-		final SipCallback callback = new SipCallback(){
+		/*final SipCallback callback = new SipCallback(){
 		
 			@Override
 			public int OnDialogEvent(DialogEvent e) {
@@ -110,7 +158,10 @@ public class VoicerService extends Observable {
 			
 			@Override
 			public int OnRegistrationEvent(RegistrationEvent e) {
-				// low level events
+				Log.d("VOICER", "Registration event - Code: " + e.getPhrase());
+				setChanged();
+				notifyObservers(StatusRegistroSIP.NAO_REGISTRADO);
+				
 				return 0;
 			}
 		};
@@ -120,6 +171,8 @@ public class VoicerService extends Observable {
 		sipStack.setProxyCSCF(proxyHost, 5060, "UDP", "IPv4");
 		// Set password
 		sipStack.setPassword(senha);
+		
+		
 		if(sipStack.isValid()){
 			if(sipStack.start()){
 				registrationSession = new RegistrationSession(sipStack);
@@ -127,7 +180,7 @@ public class VoicerService extends Observable {
 				// Send SIP register request
 				registrationSession.register_();
 			}
-		}
+		}*/
 	}
 	
 	/**

@@ -1,18 +1,23 @@
 package br.com.sixinf.voicer;
 
+import org.doubango.ngn.events.NgnRegistrationEventArgs;
+
 import android.app.Activity;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import br.com.sixinf.voicer.receivers.RegistrationBroadcastReceiver;
 
 public class SetupActivity extends Activity {
 	
 	private EditText txtUsuario;
 	private EditText txtSenha;
+	private RegistrationBroadcastReceiver regBroadcastReceiver;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +39,13 @@ public class SetupActivity extends Activity {
 				VoicerFacade.getInstance().registerNoServidorSIP();
 			}
 		});
+		
+		// Register broadcast receivers
+		regBroadcastReceiver = new RegistrationBroadcastReceiver();
+		final IntentFilter intentFilter = new IntentFilter();
+		intentFilter.addAction(NgnRegistrationEventArgs.ACTION_REGISTRATION_EVENT);
+		registerReceiver(regBroadcastReceiver, intentFilter);
+		
 	}
 
 	@Override
@@ -60,17 +72,23 @@ public class SetupActivity extends Activity {
 	 * @param data
 	 */
 	public void updateStatusRegistroSIP(final StatusRegistroSIP status) {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				txtUsuario.setText(status.name());
+			}
+		});
+		
 		if (status.equals(StatusRegistroSIP.REGISTRADO)) {
 			Intent i = new Intent(SetupActivity.this, VoicerActivity.class);
 			startActivity(i);
-		} else {
-			runOnUiThread(new Runnable() {
-				
-				@Override
-				public void run() {
-					txtUsuario.setText(status.name());
-				}
-			});
 		}
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		if (regBroadcastReceiver != null)
+			unregisterReceiver(regBroadcastReceiver);
 	}
 }
