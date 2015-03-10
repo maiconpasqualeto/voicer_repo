@@ -234,6 +234,9 @@ public class VoicerFacade implements Observer {
 		this.mainActivity = mainActivity;
 	}
 
+	/**
+	 * Observer
+	 */
 	@Override
 	public void update(Observable observable, Object data) {
 		if (data instanceof StatusRegistroSIP) {
@@ -242,5 +245,11 @@ public class VoicerFacade implements Observer {
 			
 	}
 
-	
+	/**
+	 * 
+	 */
+	public void fazerChamadaAudio(final VoicerActivity activity, String nomePeer) {
+		String sipUri = "sip:" + nomePeer + "@sip.linphone.org";
+		voicerService.makeAudioCall(sipUri);
+	}
 }

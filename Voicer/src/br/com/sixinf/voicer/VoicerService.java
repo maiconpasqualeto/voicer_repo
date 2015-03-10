@@ -6,6 +6,9 @@ package br.com.sixinf.voicer;
 import java.util.Observable;
 
 import org.doubango.ngn.NgnEngine;
+import org.doubango.ngn.media.NgnMediaType;
+import org.doubango.ngn.services.INgnSipService;
+import org.doubango.ngn.sip.NgnAVSession;
 import org.doubango.tinyWRAP.DialogEvent;
 import org.doubango.tinyWRAP.RegistrationEvent;
 import org.doubango.tinyWRAP.RegistrationSession;
@@ -131,8 +134,23 @@ public class VoicerService extends Observable {
 	 * 
 	 */
 	public void sipUnregister() {
-		if (registrationSession != null)
-			registrationSession.unRegister();
+		INgnSipService service = engine.getSipService();
+		
+		if (service.isRegistered())
+			service.unRegister();
+		
+		/*if (registrationSession != null)
+			registrationSession.unRegister();*/
+	}
+	
+	/**
+	 * 
+	 */
+	public void makeAudioCall(String sipUri) {
+		NgnAVSession avSession = NgnAVSession.createOutgoingSession(
+		engine.getSipService().getSipStack(), NgnMediaType.Audio);
+		avSession.makeCall(sipUri);
+		//...
 	}
 	
 }
