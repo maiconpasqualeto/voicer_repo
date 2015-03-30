@@ -11,13 +11,7 @@ import org.doubango.ngn.services.INgnConfigurationService;
 import org.doubango.ngn.services.INgnSipService;
 import org.doubango.ngn.sip.NgnAVSession;
 import org.doubango.ngn.utils.NgnConfigurationEntry;
-import org.doubango.tinyWRAP.DialogEvent;
-import org.doubango.tinyWRAP.RegistrationEvent;
 import org.doubango.tinyWRAP.RegistrationSession;
-import org.doubango.tinyWRAP.SipCallback;
-import org.doubango.tinyWRAP.SipSession;
-import org.doubango.tinyWRAP.SipStack;
-import org.doubango.tinyWRAP.tinyWRAPConstants;
 
 import android.app.Activity;
 import android.util.Log;
@@ -32,6 +26,7 @@ public class VoicerService extends Observable {
 	private final NgnEngine engine;
 	//private SipStack sipStack;
 	private INgnSipService sipService;
+	private NgnAVSession avSession; 
 			
 	public VoicerService(Activity context) {
 		//Voicer c = new Voicer();
@@ -199,11 +194,18 @@ public class VoicerService extends Observable {
 	/**
 	 * 
 	 */
-	public void makeAudioCall(String sipUri) {
-		NgnAVSession avSession = NgnAVSession.createOutgoingSession(
-		engine.getSipService().getSipStack(), NgnMediaType.Audio);
-		avSession.makeCall(sipUri);
-		//...
+	public boolean makeAudioCall(String sipUri) {
+		avSession = NgnAVSession.createOutgoingSession(
+				engine.getSipService().getSipStack(), NgnMediaType.Audio);
+		return avSession.makeCall(sipUri);
+	}
+	
+	/**
+	 * 
+	 */
+	public void stopAudioCall() {
+		if (avSession != null)
+			avSession.hangUpCall();
 	}
 	
 }

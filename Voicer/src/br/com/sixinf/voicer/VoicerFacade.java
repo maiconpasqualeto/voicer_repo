@@ -160,16 +160,6 @@ public class VoicerFacade implements Observer {
 		
 	}
 	
-	/**
-	 * 
-	 * @return
-	 */
-	public void registerNoServidorSIP() {
-		voicerService.setupConfig(usuario, senha);
-		voicerService.sipRegister();
-		
-	}
-	
 	public SipManager getSipManager() {
 		return sipManager;
 	}
@@ -244,6 +234,23 @@ public class VoicerFacade implements Observer {
 		}
 			
 	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public void registerNoServidorSIP() {
+		voicerService.setupConfig(usuario, senha);
+		voicerService.sipRegister();
+		
+	}
+	
+	/**
+	 * 
+	 */
+	public void unregisterServicoSIP() {
+		voicerService.sipUnregister();
+	}
 
 	/**
 	 * 
@@ -251,5 +258,12 @@ public class VoicerFacade implements Observer {
 	public void fazerChamadaAudio(final VoicerActivity activity, String nomePeer) {
 		String sipUri = "sip:" + nomePeer + "@sip.linphone.org";
 		voicerService.makeAudioCall(sipUri);
+	}
+	
+	/**
+	 * 
+	 */
+	public void encerrarChamadaAudio() {
+		voicerService.stopAudioCall();
 	}
 }

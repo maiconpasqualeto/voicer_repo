@@ -1,7 +1,6 @@
 package br.com.sixinf.voicer;
 
 import android.app.Activity;
-import android.content.IntentFilter;
 import android.net.sip.SipException;
 import android.os.Bundle;
 import android.util.Log;
@@ -40,7 +39,7 @@ public class VoicerActivity extends Activity {
 					Toast.makeText(VoicerActivity.this, 
 							"Nome para chamar não pode ser vazio", Toast.LENGTH_SHORT).show();
 				else 
-					fazerChamada(nomePeer);
+					VoicerFacade.getInstance().fazerChamadaAudio(VoicerActivity.this, nomePeer);
 			}
 		});
 		
@@ -49,7 +48,7 @@ public class VoicerActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				
-				encerrarChamada();
+				VoicerFacade.getInstance().encerrarChamadaAudio();
 				
 			}
 		});
@@ -118,13 +117,15 @@ public class VoicerActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		try {
+		/*try {
 			
 			VoicerFacade.getInstance().closeLocalProfile();
 			
 		} catch (SipException e) {
 			Log.e("VOICER", "Erro ao encerrar perfil", e);
-		}
+		}*/
+		
+		VoicerFacade.getInstance().unregisterServicoSIP();
 			
 		if (chamadaRecebidaReceiver != null) 
 			unregisterReceiver(chamadaRecebidaReceiver);

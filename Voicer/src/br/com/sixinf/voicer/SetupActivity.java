@@ -1,5 +1,6 @@
 package br.com.sixinf.voicer;
 
+import org.doubango.ngn.events.NgnInviteEventArgs;
 import org.doubango.ngn.events.NgnRegistrationEventArgs;
 
 import android.app.Activity;
@@ -44,6 +45,7 @@ public class SetupActivity extends Activity {
 		regBroadcastReceiver = new RegistrationBroadcastReceiver();
 		final IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(NgnRegistrationEventArgs.ACTION_REGISTRATION_EVENT);
+		intentFilter.addAction(NgnInviteEventArgs.ACTION_INVITE_EVENT);
 		registerReceiver(regBroadcastReceiver, intentFilter);
 		
 	}
