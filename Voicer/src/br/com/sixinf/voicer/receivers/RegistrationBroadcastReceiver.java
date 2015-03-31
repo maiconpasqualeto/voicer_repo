@@ -61,7 +61,7 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 			NgnInviteEventArgs args = intent
 					.getParcelableExtra(NgnEventArgs.EXTRA_EMBEDDED);
 			if (args == null) {
-				Log.e("VOICER", "Invalid event args");
+				Log.e("VOICER", "Cannot find session");
 				return;
 			} else {
 				Log.d("VOICER", args.getPhrase());
@@ -72,17 +72,13 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 			// Retrieve the session from the store
 			NgnAVSession avSession = NgnAVSession.getSession(args
 					.getSessionId());
-			if (avSession == null) {
-				Log.e("VOICER", "Cannot find session");
-				return;
-			}
+			
 			switch (avSession.getState()) {
 				case NONE:
 					break;
 				case INCOMING:
 					Log.i("VOICER", "Incoming call");
 					break;
-	
 				case INPROGRESS:
 					Log.i("VOICER", "Call in progress");
 					break;
