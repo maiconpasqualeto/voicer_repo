@@ -53,6 +53,16 @@ public class VoicerActivity extends Activity {
 			}
 		});
 		
+		Button btnAceitar = (Button) findViewById(R.id.btnAceitar);
+		btnAceitar.setOnClickListener(new View.OnClickListener() {				
+			@Override
+			public void onClick(View v) {
+				
+				VoicerFacade.getInstance().aceitarChamada();
+				
+			}
+		});
+		
 		txtStatus = (TextView) findViewById(R.id.txtStatus);
 		txtStatus.setText("Idle");
 		

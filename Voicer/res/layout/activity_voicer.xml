@@ -30,6 +30,12 @@
             android:text="Chamar" />
 
         <Button
+            android:id="@+id/btnAceitar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Aceitar" />
+
+        <Button
             android:id="@+id/btnEncerrar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

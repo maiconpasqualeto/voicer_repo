@@ -224,6 +224,14 @@ public class VoicerFacade implements Observer {
 		this.mainActivity = mainActivity;
 	}
 
+	public VoicerService getVoicerService() {
+		return voicerService;
+	}
+
+	public void setVoicerService(VoicerService voicerService) {
+		this.voicerService = voicerService;
+	}
+
 	/**
 	 * Observer
 	 */
@@ -265,5 +273,12 @@ public class VoicerFacade implements Observer {
 	 */
 	public void encerrarChamadaAudio() {
 		voicerService.stopAudioCall();
+	}
+
+	/*
+	 * 
+	 */
+	public void aceitarChamada() {
+		voicerService.acceptCall();
 	}
 }

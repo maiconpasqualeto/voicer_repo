@@ -42,7 +42,7 @@ public class SetupActivity extends Activity {
 		});
 		
 		// Register broadcast receivers
-		regBroadcastReceiver = new RegistrationBroadcastReceiver();
+		regBroadcastReceiver = new RegistrationBroadcastReceiver(VoicerFacade.getInstance().getVoicerService());
 		final IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(NgnRegistrationEventArgs.ACTION_REGISTRATION_EVENT);
 		intentFilter.addAction(NgnInviteEventArgs.ACTION_INVITE_EVENT);

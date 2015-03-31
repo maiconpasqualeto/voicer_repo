@@ -36,6 +36,10 @@ public class VoicerService extends Observable {
 		sipService = engine.getSipService();
 	}
 	
+	public void setAvSession(NgnAVSession avSession) {
+		this.avSession = avSession;
+	}
+
 	/**
 	 * 
 	 */
@@ -60,7 +64,7 @@ public class VoicerService extends Observable {
 	 */
 	public void setupConfig(String usuario, String senha) {
 		String realm = "sip:linphone.org";
-		String publicIdentity = "sip:maiconpas@sip.linphone.org";
+		String publicIdentity = "sip:" + usuario + "@sip.linphone.org";
 		/*String privateIdentity = "maiconpas";
 		String password = "mariana123";*/
 		String proxyHost = "sip.linphone.org";
@@ -80,12 +84,17 @@ public class VoicerService extends Observable {
 				NgnConfigurationEntry.NETWORK_PCSCF_PORT, port);
 		mConfigurationService.putString(
 				NgnConfigurationEntry.NETWORK_REALM, realm);
+		mConfigurationService.putBoolean(
+				NgnConfigurationEntry.NETWORK_USE_WIFI, true);
 		// By default, using 3G for calls disabled
 		mConfigurationService.putBoolean(
 				NgnConfigurationEntry.NETWORK_USE_3G, true);
 		// You may want to leave the registration timeout to the default 1700 seconds
 		mConfigurationService.putInt(
 				NgnConfigurationEntry.NETWORK_REGISTRATION_TIMEOUT, 3600);
+		mConfigurationService.putString(
+				NgnConfigurationEntry.NETWORK_TRANSPORT, NgnConfigurationEntry.DEFAULT_NETWORK_TRANSPORT);		
+		
 		mConfigurationService.commit();
 	}
 
@@ -206,6 +215,22 @@ public class VoicerService extends Observable {
 	public void stopAudioCall() {
 		if (avSession != null)
 			avSession.hangUpCall();
+	}
+	
+	/**
+	 * 
+	 * @param incommingSession
+	 */
+	public void receiveAudioCall(NgnAVSession incommingSession){
+		this.avSession = incommingSession;
+	}
+	
+	/**
+	 * 
+	 */
+	public void acceptCall() {
+		if (avSession != null)
+			avSession.acceptCall();
 	}
 	
 }
