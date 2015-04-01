@@ -1,10 +1,9 @@
-package br.com.sixinf.voicer;
+package br.com.sixinf.voicer.telas;
 
 import org.doubango.ngn.events.NgnInviteEventArgs;
 import org.doubango.ngn.events.NgnRegistrationEventArgs;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.Menu;
@@ -12,12 +11,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
+import br.com.sixinf.voicer.R;
 import br.com.sixinf.voicer.receivers.RegistrationBroadcastReceiver;
+import br.com.sixinf.voicer.sip.VoicerFacade;
 
-public class SetupActivity extends Activity {
+public class SetupActivity extends Activity implements IUpdateStatus {
 	
 	private EditText txtUsuario;
 	private EditText txtSenha;
+	private TextView txtStatus;
 	private RegistrationBroadcastReceiver regBroadcastReceiver;
 	
 	@Override
@@ -31,6 +34,8 @@ public class SetupActivity extends Activity {
 		
 		txtUsuario = (EditText) findViewById(R.id.txtUsuario);
 		txtSenha = (EditText) findViewById(R.id.txtSenha);
+		txtStatus = (TextView) findViewById(R.id.txtStatus);
+		
 		Button btnLogar = (Button) findViewById(R.id.btnLogar);
 		btnLogar.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -68,29 +73,21 @@ public class SetupActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-
-	/**
-	 * 
-	 * @param data
-	 */
-	public void updateStatusRegistroSIP(final StatusRegistroSIP status) {
-		runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				txtUsuario.setText(status.name());
-			}
-		});
-		
-		if (status.equals(StatusRegistroSIP.REGISTRADO)) {
-			Intent i = new Intent(SetupActivity.this, VoicerActivity.class);
-			startActivity(i);
-		}
-	}
 	
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 		if (regBroadcastReceiver != null)
 			unregisterReceiver(regBroadcastReceiver);
+	}
+
+	@Override
+	public void updateStatus(final String mensagem) {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				txtStatus.setText(mensagem);
+			}
+		});
 	}
 }

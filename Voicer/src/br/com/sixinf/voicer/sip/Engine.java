@@ -1,7 +1,7 @@
 /**
  * 
  */
-package br.com.sixinf.voicer;
+package br.com.sixinf.voicer.sip;
 
 import org.doubango.ngn.NgnEngine;
 

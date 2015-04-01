@@ -13,8 +13,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import br.com.sixinf.voicer.VoicerActivity;
-import br.com.sixinf.voicer.VoicerService;
+import br.com.sixinf.voicer.sip.VoicerService;
+import br.com.sixinf.voicer.telas.VoicerActivity;
 
 /**
  * @author maicon
@@ -53,23 +53,29 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 			switch (args.getEventType()) {
 			case REGISTRATION_NOK:
 				Log.d("VOICER", "Failed to register :(");
+				voicerService.updateObservers("Failed to register :(");
 				break;
 			case UNREGISTRATION_OK:
 				Log.d("VOICER", "You are now unregistered :)");
+				voicerService.updateObservers("You are now unregistered :)");
 				break;
 			case REGISTRATION_OK:
 				Log.d("VOICER", "You are now registered :)");
+				voicerService.updateObservers("You are now registered :)");
 				Intent i = new Intent(context, VoicerActivity.class);
 				context.startActivity(i);
 				break;
 			case REGISTRATION_INPROGRESS:
 				Log.d("VOICER", "Trying to register...");
+				voicerService.updateObservers("Trying to register...");
 				break;
 			case UNREGISTRATION_INPROGRESS:
 				Log.d("VOICER", "Trying to unregister...");
+				voicerService.updateObservers("Trying to unregister...");
 				break;
 			case UNREGISTRATION_NOK:
 				Log.d("VOICER", "Failed to unregister :(");
+				voicerService.updateObservers("Failed to unregister :(");
 				break;
 			}
 
@@ -91,6 +97,7 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 			
 			if (avSession == null) {
 				Log.d("VOICER", "avSession null");
+				voicerService.updateObservers(args.getPhrase());
 				return;
 			}
 			
@@ -101,28 +108,35 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 					break;
 				case INCOMING:
 					Log.i("VOICER", "Incoming call");
+					voicerService.updateObservers("Incoming call");
 					mEngine.getSoundService().startRingTone();
 					voicerService.setAvSession(avSession);
 					break;
 				case INPROGRESS:
 					Log.i("VOICER", "Call in progress");
+					voicerService.updateObservers("Call in progress");
 					break;
 				case REMOTE_RINGING:
 					Log.i("VOICER", "Remote party is ringing");
+					voicerService.updateObservers("Remote party is ringing");
 					break;
 				case EARLY_MEDIA:
 					Log.i("VOICER", "Early media started");
+					voicerService.updateObservers("Early media started");
 					break;
 				case INCALL:
 					Log.i("VOICER", "Call connected");
+					voicerService.updateObservers("Call connected");
 					mEngine.getSoundService().stopRingTone();
-					avSession.setSpeakerphoneOn(true);
+					mEngine.getSoundService().stopRingBackTone();
 					break;
 				case TERMINATING:
 					Log.i("VOICER", "Call terminating");
+					voicerService.updateObservers("Call terminating");
 					break;
 				case TERMINATED:
 					Log.i("VOICER", "Call terminated");
+					voicerService.updateObservers("Call terminated");
 					mEngine.getSoundService().stopRingTone();
 					mEngine.getSoundService().stopRingBackTone();
 					voicerService.stopAudioCall();
