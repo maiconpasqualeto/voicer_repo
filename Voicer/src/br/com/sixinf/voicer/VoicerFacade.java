@@ -264,7 +264,7 @@ public class VoicerFacade implements Observer {
 	 * 
 	 */
 	public void fazerChamadaAudio(final VoicerActivity activity, String nomePeer) {
-		String sipUri = "sip:" + nomePeer + "@iptel.org";
+		String sipUri = "sip:" + nomePeer + "@sip2sip.info";
 		voicerService.makeAudioCall(sipUri);
 	}
 	

@@ -125,6 +125,7 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 					Log.i("VOICER", "Call terminated");
 					mEngine.getSoundService().stopRingTone();
 					mEngine.getSoundService().stopRingBackTone();
+					voicerService.stopAudioCall();
 					break;
 			}
 		}
