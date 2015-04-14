@@ -38,7 +38,7 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 
 		final String action = intent.getAction();
 		
-		Log.d("VOICER", "Action: " + action);
+		//Log.d("VOICER", "Action: " + action);
 		
 		// Registration Event
 		if (NgnRegistrationEventArgs.ACTION_REGISTRATION_EVENT.equals(action)) {

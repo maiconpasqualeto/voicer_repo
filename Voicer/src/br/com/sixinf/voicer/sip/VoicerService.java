@@ -58,9 +58,9 @@ public class VoicerService extends Observable {
 	 * @param senha
 	 */
 	public void setupConfig(String usuario, String senha) {
-		String realm = "sip:sip2sip.info";
-		String publicIdentity = "sip:" + usuario + "@sip2sip.info";
-		String proxyHost = "proxy.sipthor.net";
+		String realm = "sip:openjsip.net";
+		String publicIdentity = "sip:" + usuario + "@openjsip.net";
+		String proxyHost = "192.168.25.155";
 		int port = 5060;
 		
 		NgnEngine mEngine = NgnEngine.getInstance();
