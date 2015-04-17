@@ -3,9 +3,9 @@
     tools:context="br.com.sixinf.voicer.SetupActivity" >
 
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/login_mnuSetup"
         android:orderInCategory="100"
         android:showAsAction="never"
-        android:title="@string/action_settings"/>
+        android:title="@string/login_mnuSetup"/>
 
 </menu>
