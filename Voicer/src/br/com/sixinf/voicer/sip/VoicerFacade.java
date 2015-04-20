@@ -41,11 +41,28 @@ public class VoicerFacade implements Observer {
 	/**
 	 * 
 	 */
-	public void startSipService() {
+	public void createVoicerService(Activity mainActivity) {
 		if (mainActivity == null)
 			throw new UnsupportedOperationException("Main activity must be set");
 		
+		String realm = "sip:openjsip.net";
+		String domain = "openjsip.net";
+		String proxyHost = "192.168.25.155";
+		int port = 5060;
+		
 		voicerService = new VoicerService(mainActivity);
+		voicerService.setRealm(realm);
+		voicerService.setDomain(domain);
+		voicerService.setProxyHost(proxyHost);
+		voicerService.setPort(port);
+		
+	}
+	
+	/**
+	 * 
+	 */
+	public void startSipService() {
+		
 		voicerService.addObserver(this);
 		voicerService.startEngine();
 	}

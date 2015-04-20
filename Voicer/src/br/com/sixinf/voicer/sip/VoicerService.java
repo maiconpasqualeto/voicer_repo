@@ -24,6 +24,10 @@ public class VoicerService extends Observable {
 	private final NgnEngine engine;
 	private INgnSipService sipService;
 	private NgnAVSession avSession; 
+	private String realm;
+	private String domain;
+	private String proxyHost;
+	private int port;
 			
 	public VoicerService(Activity context) {
 		engine = NgnEngine.getInstance();
@@ -58,10 +62,12 @@ public class VoicerService extends Observable {
 	 * @param senha
 	 */
 	public void setupConfig(String usuario, String senha) {
-		String realm = "sip:openjsip.net";
+		/*String realm = "sip:openjsip.net";
 		String publicIdentity = "sip:" + usuario + "@openjsip.net";
 		String proxyHost = "192.168.25.155";
-		int port = 5060;
+		int port = 5060;*/
+		
+		String publicIdentity = "sip:" + usuario + "@" + domain;
 		
 		NgnEngine mEngine = NgnEngine.getInstance();
 		INgnConfigurationService mConfigurationService = mEngine.getConfigurationService();
@@ -160,5 +166,38 @@ public class VoicerService extends Observable {
 		setChanged();
 		notifyObservers(mensagem);
 	}
+
+	public String getRealm() {
+		return realm;
+	}
+
+	public void setRealm(String realm) {
+		this.realm = realm;
+	}
+
+	public String getDomain() {
+		return domain;
+	}
+
+	public void setDomain(String domain) {
+		this.domain = domain;
+	}
+
+	public String getProxyHost() {
+		return proxyHost;
+	}
+
+	public void setProxyHost(String proxyHost) {
+		this.proxyHost = proxyHost;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+	
 	
 }

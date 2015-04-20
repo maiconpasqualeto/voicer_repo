@@ -9,6 +9,7 @@ import org.doubango.ngn.events.NgnRegistrationEventArgs;
 import br.com.sixinf.voicer.R;
 import br.com.sixinf.voicer.receivers.RegistrationBroadcastReceiver;
 import br.com.sixinf.voicer.sip.VoicerFacade;
+import br.com.sixinf.voicer.sip.VoicerService;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -38,7 +39,7 @@ public class LoginActivity extends Activity implements IUpdateStatus {
 		setContentView(R.layout.activity_login);
 		
 		// Inicializa a fachada e a engine do Audio
-		VoicerFacade.getInstance().setMainActivity(this);
+		VoicerFacade.getInstance().createVoicerService(this);
 		VoicerFacade.getInstance().startSipService();
 		
 		txtUsuario = (EditText) findViewById(R.id.login_txtUsuario);
@@ -77,8 +78,21 @@ public class LoginActivity extends Activity implements IUpdateStatus {
 		int id = item.getItemId();
 		
 		if (id == R.id.login_mnuSetup) {
-			Intent it = new Intent(this, SetupActivity.class);			
+			Intent it = new Intent(this, SetupActivity.class);
+			
+			VoicerService vs = VoicerFacade.getInstance().getVoicerService();
+			String realm = vs.getRealm();
+			String dominio = vs.getDomain();
+			String host = vs.getProxyHost();
+			Integer porta = vs.getPort();
+			
+			it.putExtra("realm", realm);
+			it.putExtra("dominio", dominio);
+			it.putExtra("host", host);
+			it.putExtra("porta", porta);
+			
 			startActivity(it);
+			
 			return true;
 		}
 		
