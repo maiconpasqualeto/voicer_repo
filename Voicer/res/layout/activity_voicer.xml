@@ -2,62 +2,63 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    android:paddingTop="10dp" >
 
     <TextView
-        android:id="@+id/lblNomePeer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Nome a ser chamado:" />
-
-    <EditText
-        android:id="@+id/txtNomePeer"
+        android:id="@+id/voicer_lblRamal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10" >
-
-        <requestFocus />
-    </EditText>
+        android:layout_gravity="center"
+        android:background="@drawable/edit_text_header"
+        android:gravity="center"
+        android:paddingBottom="20dp"
+        android:paddingLeft="40dp"
+        android:paddingRight="40dp"
+        android:paddingTop="20dp"
+        android:text="Ramal: 30050"
+        android:textSize="24sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingTop="40dp" >
 
         <Button
-            android:id="@+id/btnChamar"
-            android:layout_width="wrap_content"
+            android:id="@+id/voicer_btnChamar"
+            android:layout_width="140dp"
             android:layout_height="wrap_content"
-            android:text="Chamar" />
+            android:layout_marginRight="40dp"
+            android:background="@drawable/button_shape"
+            android:text="Chamar"
+            android:textSize="22sp" />
 
         <Button
-            android:id="@+id/btnAceitar"
-            android:layout_width="wrap_content"
+            android:id="@+id/voicer_btnContatos"
+            android:layout_width="140dp"
             android:layout_height="wrap_content"
-            android:text="Aceitar" />
-
-        <Button
-            android:id="@+id/btnEncerrar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Encerrar" />
+            android:background="@drawable/button_shape"
+            android:text="Contatos"
+            android:textSize="22sp" />
 
     </LinearLayout>
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom">
 
         <TextView
-            android:id="@+id/lblStatus"
-            android:layout_width="wrap_content"
+            android:id="@+id/voicer_lblStatus"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Status: " />
+            android:layout_gravity="bottom"
+            android:background="@drawable/status_bar"
+            android:gravity="center"
+            android:text="Conectando..."
+            android:textAppearance="?android:attr/textAppearanceLarge" />
 
-        <TextView
-            android:id="@+id/txtStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Conectando..." />
-    </LinearLayout>
+    </FrameLayout>
     
 </LinearLayout>

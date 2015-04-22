@@ -6,43 +6,33 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 import br.com.sixinf.voicer.R;
 import br.com.sixinf.voicer.sip.VoicerFacade;
 
 public class VoicerActivity extends Activity implements IUpdateStatus {
 	
-	private TextView txtStatus;
+	private TextView lblStatus;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_voicer);
 		
-		
-		final EditText txtNomePeer = (EditText) findViewById(R.id.txtNomePeer);
-		/*if (VoicerFacade.getInstance().getUsuario().equals("maiconpas"))
-			txtNomePeer.setText("sixinf");
-		else
-			if (VoicerFacade.getInstance().getUsuario().equals("sixinf"))
-				txtNomePeer.setText("maiconpas");*/
-		
-		Button btnChamar = (Button) findViewById(R.id.btnChamar);
+		Button btnChamar = (Button) findViewById(R.id.voicer_btnChamar);
 		btnChamar.setOnClickListener(new View.OnClickListener() {				
 			@Override
 			public void onClick(View v) {
-				String nomePeer = txtNomePeer.getText().toString();
+				/*String nomePeer = txtNomePeer.getText().toString();
 				if (nomePeer.isEmpty())
 					Toast.makeText(VoicerActivity.this, 
 							"Nome para chamar não pode ser vazio", Toast.LENGTH_SHORT).show();
 				else 
-					VoicerFacade.getInstance(VoicerActivity.this).fazerChamadaAudio(nomePeer);
+					VoicerFacade.getInstance(VoicerActivity.this).fazerChamadaAudio(nomePeer);*/
 			}
 		});
 		
-		Button btnEncerrar = (Button) findViewById(R.id.btnEncerrar);
+		/*Button btnEncerrar = (Button) findViewById(R.id.btnEncerrar);
 		btnEncerrar.setOnClickListener(new View.OnClickListener() {				
 			@Override
 			public void onClick(View v) {
@@ -60,10 +50,10 @@ public class VoicerActivity extends Activity implements IUpdateStatus {
 				VoicerFacade.getInstance(VoicerActivity.this).aceitarChamada();
 				
 			}
-		});
+		});*/
 		
-		txtStatus = (TextView) findViewById(R.id.txtStatus);
-		txtStatus.setText("Idle");
+		lblStatus = (TextView) findViewById(R.id.voicer_lblStatus);
+		lblStatus.setText("Idle");
 		
 		VoicerFacade.getInstance(VoicerActivity.this).setMainActivity(this);
 						
@@ -103,7 +93,7 @@ public class VoicerActivity extends Activity implements IUpdateStatus {
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				txtStatus.setText(status);
+				lblStatus.setText(status);
 			}
 		});
 	}
