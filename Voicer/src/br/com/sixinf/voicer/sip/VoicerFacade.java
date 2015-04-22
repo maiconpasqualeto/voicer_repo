@@ -7,6 +7,9 @@ import java.util.Observable;
 import java.util.Observer;
 
 import android.app.Activity;
+import android.content.Context;
+import br.com.sixinf.voicer.persistencia.Config;
+import br.com.sixinf.voicer.persistencia.VoicerDAO;
 import br.com.sixinf.voicer.telas.IUpdateStatus;
 import br.com.sixinf.voicer.telas.VoicerActivity;
 import android.net.sip.SipAudioCall;
@@ -23,19 +26,24 @@ public class VoicerFacade implements Observer {
 	
 	private SipManager sipManager;
 	private SipProfile sipProfile;
-	private String usuario;
-	private String senha;
 	private String usuarioPeer;
 	private SipAudioCall chamadaRecebida;
 	private SipAudioCall chamadaEncaminhada;
 	private Activity mainActivity;
+	private Context context;
 	private VoicerService voicerService;
+	private VoicerDAO dao;
 	
-	public static VoicerFacade getInstance() {
+	public static VoicerFacade getInstance(Context context) {
 		if (facade == null)
-			facade = new VoicerFacade();
+			facade = new VoicerFacade(context);
 		
 		return facade;
+	}
+	
+	public VoicerFacade(Context context) {
+		this.context = context;
+		this.dao = new VoicerDAO(context);
 	}
 	
 	/**
@@ -45,16 +53,9 @@ public class VoicerFacade implements Observer {
 		if (mainActivity == null)
 			throw new UnsupportedOperationException("Main activity must be set");
 		
-		String realm = "sip:openjsip.net";
-		String domain = "openjsip.net";
-		String proxyHost = "192.168.25.155";
-		int port = 5060;
+		Config conf = VoicerDAO.getInstance(mainActivity).buscaConfiguracao();
 		
-		voicerService = new VoicerService(mainActivity);
-		voicerService.setRealm(realm);
-		voicerService.setDomain(domain);
-		voicerService.setProxyHost(proxyHost);
-		voicerService.setPort(port);
+		voicerService = new VoicerService(mainActivity, conf);
 		
 	}
 	
@@ -82,22 +83,6 @@ public class VoicerFacade implements Observer {
 
 	public void setSipProfile(SipProfile sipProfile) {
 		this.sipProfile = sipProfile;
-	}
-
-	public String getUsuario() {
-		return usuario;
-	}
-
-	public void setUsuario(String usuario) {
-		this.usuario = usuario;
-	}
-
-	public String getSenha() {
-		return senha;
-	}
-
-	public void setSenha(String senha) {
-		this.senha = senha;
 	}
 
 	public String getUsuarioPeer() {
@@ -156,7 +141,7 @@ public class VoicerFacade implements Observer {
 	 * @return
 	 */
 	public void registerNoServidorSIP() {
-		voicerService.setupConfig(usuario, senha);
+		voicerService.setupConfig();
 		voicerService.sipRegister();
 	}
 	
@@ -170,7 +155,7 @@ public class VoicerFacade implements Observer {
 	/**
 	 * 
 	 */
-	public void fazerChamadaAudio(final VoicerActivity activity, String nomePeer) {
+	public void fazerChamadaAudio(String nomePeer) {
 		String sipUri = "sip:" + nomePeer + "@openjsip.net";
 		voicerService.makeAudioCall(sipUri);
 	}
@@ -187,5 +172,24 @@ public class VoicerFacade implements Observer {
 	 */
 	public void aceitarChamada() {
 		voicerService.acceptCall();
+	}
+	
+	public void atualizaConfiguracao(
+			String usuario, 
+			String senha, 
+			String realm, 
+			String domain,
+			String host, 
+			Integer porta) {
+		
+		Config conf = dao.buscaConfiguracao();
+		conf.setUsuario(usuario);
+		conf.setSenha(senha);
+		conf.setRealm(realm);
+		conf.setDomain(domain);
+		conf.setHost(host);
+		conf.setPorta(porta);
+		
+		voicerService.setConf(conf);
 	}
 }

@@ -23,11 +23,11 @@ public class VoicerActivity extends Activity implements IUpdateStatus {
 		
 		
 		final EditText txtNomePeer = (EditText) findViewById(R.id.txtNomePeer);
-		if (VoicerFacade.getInstance().getUsuario().equals("maiconpas"))
+		/*if (VoicerFacade.getInstance().getUsuario().equals("maiconpas"))
 			txtNomePeer.setText("sixinf");
 		else
 			if (VoicerFacade.getInstance().getUsuario().equals("sixinf"))
-				txtNomePeer.setText("maiconpas");
+				txtNomePeer.setText("maiconpas");*/
 		
 		Button btnChamar = (Button) findViewById(R.id.btnChamar);
 		btnChamar.setOnClickListener(new View.OnClickListener() {				
@@ -38,7 +38,7 @@ public class VoicerActivity extends Activity implements IUpdateStatus {
 					Toast.makeText(VoicerActivity.this, 
 							"Nome para chamar não pode ser vazio", Toast.LENGTH_SHORT).show();
 				else 
-					VoicerFacade.getInstance().fazerChamadaAudio(VoicerActivity.this, nomePeer);
+					VoicerFacade.getInstance(VoicerActivity.this).fazerChamadaAudio(nomePeer);
 			}
 		});
 		
@@ -47,7 +47,7 @@ public class VoicerActivity extends Activity implements IUpdateStatus {
 			@Override
 			public void onClick(View v) {
 				
-				VoicerFacade.getInstance().encerrarChamadaAudio();
+				VoicerFacade.getInstance(VoicerActivity.this).encerrarChamadaAudio();
 				
 			}
 		});
@@ -57,7 +57,7 @@ public class VoicerActivity extends Activity implements IUpdateStatus {
 			@Override
 			public void onClick(View v) {
 				
-				VoicerFacade.getInstance().aceitarChamada();
+				VoicerFacade.getInstance(VoicerActivity.this).aceitarChamada();
 				
 			}
 		});
@@ -65,7 +65,7 @@ public class VoicerActivity extends Activity implements IUpdateStatus {
 		txtStatus = (TextView) findViewById(R.id.txtStatus);
 		txtStatus.setText("Idle");
 		
-		VoicerFacade.getInstance().setMainActivity(this);
+		VoicerFacade.getInstance(VoicerActivity.this).setMainActivity(this);
 						
 	}
 	
@@ -90,7 +90,7 @@ public class VoicerActivity extends Activity implements IUpdateStatus {
 	protected void onDestroy() {
 		super.onDestroy();
 		
-		VoicerFacade.getInstance().unregisterServicoSIP();
+		VoicerFacade.getInstance(VoicerActivity.this).unregisterServicoSIP();
 		
 	}
 		

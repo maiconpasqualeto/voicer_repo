@@ -12,6 +12,7 @@ import org.doubango.ngn.services.INgnSipService;
 import org.doubango.ngn.sip.NgnAVSession;
 import org.doubango.ngn.utils.NgnConfigurationEntry;
 
+import br.com.sixinf.voicer.persistencia.Config;
 import android.app.Activity;
 import android.util.Log;
 
@@ -23,15 +24,13 @@ public class VoicerService extends Observable {
 	
 	private final NgnEngine engine;
 	private INgnSipService sipService;
-	private NgnAVSession avSession; 
-	private String realm;
-	private String domain;
-	private String proxyHost;
-	private int port;
+	private NgnAVSession avSession;
+	private Config conf;
 			
-	public VoicerService(Activity context) {
+	public VoicerService(Activity context, Config conf) {
+		this.conf = conf;
 		engine = NgnEngine.getInstance();
-		engine.setMainActivity(context);
+		engine.setMainActivity(context);		
 		sipService = engine.getSipService();
 	}
 	
@@ -61,28 +60,28 @@ public class VoicerService extends Observable {
 	 * @param usuario
 	 * @param senha
 	 */
-	public void setupConfig(String usuario, String senha) {
+	public void setupConfig() {
 		/*String realm = "sip:openjsip.net";
 		String publicIdentity = "sip:" + usuario + "@openjsip.net";
 		String proxyHost = "192.168.25.155";
 		int port = 5060;*/
 		
-		String publicIdentity = "sip:" + usuario + "@" + domain;
+		String publicIdentity = "sip:" + conf.getUsuario() + "@" + conf.getDomain();
 		
 		NgnEngine mEngine = NgnEngine.getInstance();
 		INgnConfigurationService mConfigurationService = mEngine.getConfigurationService();
 		mConfigurationService.putString(
-				NgnConfigurationEntry.IDENTITY_IMPI, usuario);
+				NgnConfigurationEntry.IDENTITY_IMPI, conf.getUsuario());
 		mConfigurationService.putString(
 				NgnConfigurationEntry.IDENTITY_IMPU, publicIdentity);
 		mConfigurationService.putString(
-				NgnConfigurationEntry.IDENTITY_PASSWORD, senha);
+				NgnConfigurationEntry.IDENTITY_PASSWORD, conf.getSenha());
 		mConfigurationService.putString(
-				NgnConfigurationEntry.NETWORK_PCSCF_HOST, proxyHost);
+				NgnConfigurationEntry.NETWORK_PCSCF_HOST, conf.getHost());
 		mConfigurationService.putInt(
-				NgnConfigurationEntry.NETWORK_PCSCF_PORT, port);
+				NgnConfigurationEntry.NETWORK_PCSCF_PORT, conf.getPorta());
 		mConfigurationService.putString(
-				NgnConfigurationEntry.NETWORK_REALM, realm);
+				NgnConfigurationEntry.NETWORK_REALM, conf.getRealm());
 		mConfigurationService.putBoolean(
 				NgnConfigurationEntry.NETWORK_USE_WIFI, true);
 		// By default, using 3G for calls disabled
@@ -167,36 +166,12 @@ public class VoicerService extends Observable {
 		notifyObservers(mensagem);
 	}
 
-	public String getRealm() {
-		return realm;
+	public Config getConf() {
+		return conf;
 	}
 
-	public void setRealm(String realm) {
-		this.realm = realm;
-	}
-
-	public String getDomain() {
-		return domain;
-	}
-
-	public void setDomain(String domain) {
-		this.domain = domain;
-	}
-
-	public String getProxyHost() {
-		return proxyHost;
-	}
-
-	public void setProxyHost(String proxyHost) {
-		this.proxyHost = proxyHost;
-	}
-
-	public int getPort() {
-		return port;
-	}
-
-	public void setPort(int port) {
-		this.port = port;
+	public void setConf(Config conf) {
+		this.conf = conf;
 	}
 	
 	

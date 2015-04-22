@@ -9,10 +9,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import br.com.sixinf.voicer.R;
 import br.com.sixinf.voicer.sip.VoicerFacade;
-import br.com.sixinf.voicer.sip.VoicerService;
 
 public class SetupActivity extends Activity implements IUpdateStatus {
 	
+	private EditText txtUsuario;
+	private EditText txtSenha;
 	private EditText txtRealm;
 	private EditText txtDominio;	
 	private EditText txtHost;
@@ -23,16 +24,22 @@ public class SetupActivity extends Activity implements IUpdateStatus {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_setup);
 		
+		txtUsuario = (EditText) findViewById(R.id.setup_txtUsuario);
+		txtSenha = (EditText) findViewById(R.id.setup_txtSenha);
 		txtRealm = (EditText) findViewById(R.id.setup_txtRealm);
 		txtDominio = (EditText) findViewById(R.id.setup_txtDomain);
 		txtHost = (EditText) findViewById(R.id.setup_txtHost);
 		txtPorta = (EditText) findViewById(R.id.setup_txtPorta);
 		
+		String usuario = getIntent().getStringExtra("usuario");
+		String senha = getIntent().getStringExtra("senha");
 		String realm = getIntent().getStringExtra("realm");
 		String dominio = getIntent().getStringExtra("dominio");
 		String host = getIntent().getStringExtra("host");
 		Integer porta = getIntent().getIntExtra("porta", 0);
 		
+		txtUsuario.setText(usuario);
+		txtSenha.setText(senha);
 		txtRealm.setText(realm);
 		txtDominio.setText(dominio);
 		txtHost.setText(host);
@@ -42,12 +49,15 @@ public class SetupActivity extends Activity implements IUpdateStatus {
 		btnSalvar.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				VoicerService vs = VoicerFacade.getInstance().getVoicerService();
-				vs.setRealm(txtRealm.getText().toString());
-				vs.setDomain(txtDominio.getText().toString());
-				vs.setProxyHost(txtHost.getText().toString());
+				VoicerFacade f = VoicerFacade.getInstance(SetupActivity.this);
 				Integer porta = Integer.valueOf(txtPorta.getText().toString());
-				vs.setPort(porta);
+				f.atualizaConfiguracao(
+						txtUsuario.getText().toString(),
+						txtSenha.getText().toString(), 
+						txtRealm.getText().toString(), 
+						txtDominio.getText().toString(), 
+						txtHost.getText().toString(), 
+						porta);
 				finish();
 			}
 		});

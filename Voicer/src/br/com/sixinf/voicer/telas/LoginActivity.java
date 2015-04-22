@@ -6,10 +6,6 @@ package br.com.sixinf.voicer.telas;
 import org.doubango.ngn.events.NgnInviteEventArgs;
 import org.doubango.ngn.events.NgnRegistrationEventArgs;
 
-import br.com.sixinf.voicer.R;
-import br.com.sixinf.voicer.receivers.RegistrationBroadcastReceiver;
-import br.com.sixinf.voicer.sip.VoicerFacade;
-import br.com.sixinf.voicer.sip.VoicerService;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -20,6 +16,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import br.com.sixinf.voicer.R;
+import br.com.sixinf.voicer.receivers.RegistrationBroadcastReceiver;
+import br.com.sixinf.voicer.sip.VoicerFacade;
 
 /**
  * @author maicon
@@ -39,8 +38,8 @@ public class LoginActivity extends Activity implements IUpdateStatus {
 		setContentView(R.layout.activity_login);
 		
 		// Inicializa a fachada e a engine do Audio
-		VoicerFacade.getInstance().createVoicerService(this);
-		VoicerFacade.getInstance().startSipService();
+		VoicerFacade.getInstance(this).createVoicerService(this);
+		VoicerFacade.getInstance(this).startSipService();
 		
 		txtUsuario = (EditText) findViewById(R.id.login_txtUsuario);
 		txtSenha = (EditText) findViewById(R.id.login_txtSenha);
@@ -50,14 +49,13 @@ public class LoginActivity extends Activity implements IUpdateStatus {
 		btnLogar.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				VoicerFacade.getInstance().setUsuario(txtUsuario.getText().toString());
-				VoicerFacade.getInstance().setSenha(txtSenha.getText().toString());
-				VoicerFacade.getInstance().registerNoServidorSIP();
+				VoicerFacade.getInstance(LoginActivity.this).registerNoServidorSIP();
 			}
 		});
 		
 		// Register broadcast receivers
-		regBroadcastReceiver = new RegistrationBroadcastReceiver(VoicerFacade.getInstance().getVoicerService());
+		regBroadcastReceiver = new RegistrationBroadcastReceiver(
+				VoicerFacade.getInstance(LoginActivity.this).getVoicerService());
 		final IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(NgnRegistrationEventArgs.ACTION_REGISTRATION_EVENT);
 		intentFilter.addAction(NgnInviteEventArgs.ACTION_INVITE_EVENT);
@@ -79,18 +77,6 @@ public class LoginActivity extends Activity implements IUpdateStatus {
 		
 		if (id == R.id.login_mnuSetup) {
 			Intent it = new Intent(this, SetupActivity.class);
-			
-			VoicerService vs = VoicerFacade.getInstance().getVoicerService();
-			String realm = vs.getRealm();
-			String dominio = vs.getDomain();
-			String host = vs.getProxyHost();
-			Integer porta = vs.getPort();
-			
-			it.putExtra("realm", realm);
-			it.putExtra("dominio", dominio);
-			it.putExtra("host", host);
-			it.putExtra("porta", porta);
-			
 			startActivity(it);
 			
 			return true;
