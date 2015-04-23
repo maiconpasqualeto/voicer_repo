@@ -12,6 +12,7 @@ import org.doubango.ngn.services.INgnSipService;
 import org.doubango.ngn.sip.NgnAVSession;
 import org.doubango.ngn.utils.NgnConfigurationEntry;
 
+import br.com.sixinf.voicer.ObserverData;
 import br.com.sixinf.voicer.persistencia.Config;
 import android.app.Activity;
 import android.util.Log;
@@ -161,9 +162,9 @@ public class VoicerService extends Observable {
 			avSession.acceptCall();
 	}
 	
-	public void updateObservers(String mensagem){
+	public void updateObservers(ObserverData observerData){
 		setChanged();
-		notifyObservers(mensagem);
+		notifyObservers(observerData);
 	}
 
 	public Config getConf() {

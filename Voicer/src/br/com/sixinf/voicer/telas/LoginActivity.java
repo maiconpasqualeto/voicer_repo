@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import br.com.sixinf.voicer.ObserverData;
 import br.com.sixinf.voicer.R;
 import br.com.sixinf.voicer.receivers.RegistrationBroadcastReceiver;
 import br.com.sixinf.voicer.sip.VoicerFacade;
@@ -38,8 +39,8 @@ public class LoginActivity extends Activity implements IUpdateStatus {
 		setContentView(R.layout.activity_login);
 		
 		// Inicializa a fachada e a engine do Audio
-		VoicerFacade.getInstance(this).createVoicerService(this);
-		VoicerFacade.getInstance(this).startSipService();
+		VoicerFacade.getInstance().createVoicerService(this);
+		VoicerFacade.getInstance().startSipService();
 		
 		txtUsuario = (EditText) findViewById(R.id.login_txtUsuario);
 		txtSenha = (EditText) findViewById(R.id.login_txtSenha);
@@ -49,13 +50,13 @@ public class LoginActivity extends Activity implements IUpdateStatus {
 		btnLogar.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				VoicerFacade.getInstance(LoginActivity.this).registerNoServidorSIP();
+				VoicerFacade.getInstance().registerNoServidorSIP();
 			}
 		});
 		
 		// Register broadcast receivers
 		regBroadcastReceiver = new RegistrationBroadcastReceiver(
-				VoicerFacade.getInstance(LoginActivity.this).getVoicerService());
+				VoicerFacade.getInstance().getVoicerService());
 		final IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(NgnRegistrationEventArgs.ACTION_REGISTRATION_EVENT);
 		intentFilter.addAction(NgnInviteEventArgs.ACTION_INVITE_EVENT);
@@ -93,11 +94,11 @@ public class LoginActivity extends Activity implements IUpdateStatus {
 	}
 
 	@Override
-	public void updateStatus(final String mensagem) {
+	public void updateStatus(final ObserverData observerData) {
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				txtStatus.setText(mensagem);
+				txtStatus.setText(observerData.getEventMessage());
 			}
 		});
 	}

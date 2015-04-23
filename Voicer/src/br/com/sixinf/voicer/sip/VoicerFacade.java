@@ -7,14 +7,14 @@ import java.util.Observable;
 import java.util.Observer;
 
 import android.app.Activity;
-import android.content.Context;
-import br.com.sixinf.voicer.persistencia.Config;
-import br.com.sixinf.voicer.persistencia.VoicerDAO;
-import br.com.sixinf.voicer.telas.IUpdateStatus;
-import br.com.sixinf.voicer.telas.VoicerActivity;
 import android.net.sip.SipAudioCall;
 import android.net.sip.SipManager;
 import android.net.sip.SipProfile;
+import br.com.sixinf.voicer.ObserverData;
+import br.com.sixinf.voicer.Voicer;
+import br.com.sixinf.voicer.persistencia.Config;
+import br.com.sixinf.voicer.persistencia.VoicerDAO;
+import br.com.sixinf.voicer.telas.IUpdateStatus;
 
 /**
  * @author maicon
@@ -30,20 +30,18 @@ public class VoicerFacade implements Observer {
 	private SipAudioCall chamadaRecebida;
 	private SipAudioCall chamadaEncaminhada;
 	private Activity mainActivity;
-	private Context context;
 	private VoicerService voicerService;
 	private VoicerDAO dao;
 	
-	public static VoicerFacade getInstance(Context context) {
+	public static VoicerFacade getInstance() {
 		if (facade == null)
-			facade = new VoicerFacade(context);
+			facade = new VoicerFacade();
 		
 		return facade;
 	}
 	
-	public VoicerFacade(Context context) {
-		this.context = context;
-		this.dao = new VoicerDAO(context);
+	public VoicerFacade() {
+		this.dao = new VoicerDAO(Voicer.getAppContext());
 	}
 	
 	/**
@@ -56,6 +54,8 @@ public class VoicerFacade implements Observer {
 		Config conf = VoicerDAO.getInstance(mainActivity).buscaConfiguracao();
 		
 		voicerService = new VoicerService(mainActivity, conf);
+		
+		this.mainActivity = mainActivity;
 		
 	}
 	
@@ -131,7 +131,7 @@ public class VoicerFacade implements Observer {
 	@Override
 	public void update(Observable observable, Object data) {
 		if (observable instanceof VoicerService) {
-			((IUpdateStatus)mainActivity).updateStatus(data.toString());
+			((IUpdateStatus)mainActivity).updateStatus((ObserverData) data);
 		}
 			
 	}

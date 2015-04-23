@@ -5,6 +5,7 @@ package br.com.sixinf.voicer;
 
 import org.doubango.ngn.NgnApplication;
 
+import android.content.Context;
 import android.util.Log;
 
 /**
@@ -13,10 +14,19 @@ import android.util.Log;
  */
 public class Voicer extends NgnApplication {
 	
-private final static String TAG = Voicer.class.getCanonicalName();
+	private static Context context;
 	
 	public Voicer() {
-    	Log.d(TAG,"VoicerClass()");
+    	Log.d(Voicer.class.getName(),"VoicerClass()");    	
     }
-
+	
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		Voicer.context = getApplicationContext();
+	}
+	
+	public static Context getAppContext() {
+		return Voicer.context;
+	}
 }

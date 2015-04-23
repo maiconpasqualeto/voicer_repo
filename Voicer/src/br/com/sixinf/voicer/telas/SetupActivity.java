@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import br.com.sixinf.voicer.ObserverData;
 import br.com.sixinf.voicer.R;
 import br.com.sixinf.voicer.sip.VoicerFacade;
 
@@ -49,7 +50,7 @@ public class SetupActivity extends Activity implements IUpdateStatus {
 		btnSalvar.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				VoicerFacade f = VoicerFacade.getInstance(SetupActivity.this);
+				VoicerFacade f = VoicerFacade.getInstance();
 				Integer porta = Integer.valueOf(txtPorta.getText().toString());
 				f.atualizaConfiguracao(
 						txtUsuario.getText().toString(),
@@ -97,7 +98,7 @@ public class SetupActivity extends Activity implements IUpdateStatus {
 	}
 
 	@Override
-	public void updateStatus(final String mensagem) {
+	public void updateStatus(final ObserverData observerData) {
 		
 	}
 }

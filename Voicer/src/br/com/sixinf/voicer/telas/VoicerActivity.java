@@ -1,25 +1,39 @@
 package br.com.sixinf.voicer.telas;
 
+import org.doubango.ngn.events.NgnInviteEventArgs;
+import org.doubango.ngn.events.NgnRegistrationEventArgs;
+import org.doubango.ngn.events.NgnRegistrationEventTypes;
+
 import android.app.Activity;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import br.com.sixinf.voicer.ObserverData;
+import br.com.sixinf.voicer.ObserverData.EventType;
 import br.com.sixinf.voicer.R;
+import br.com.sixinf.voicer.receivers.RegistrationBroadcastReceiver;
 import br.com.sixinf.voicer.sip.VoicerFacade;
 
 public class VoicerActivity extends Activity implements IUpdateStatus {
 	
 	private TextView lblStatus;
+	private TextView lblRamal;
+	private Button btnChamar;
+	private Button btnContatos;
+	private RegistrationBroadcastReceiver regBroadcastReceiver;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_voicer);
 		
-		Button btnChamar = (Button) findViewById(R.id.voicer_btnChamar);
+		btnChamar = (Button) findViewById(R.id.voicer_btnChamar);
+		btnChamar.setVisibility(View.INVISIBLE);
+		
 		btnChamar.setOnClickListener(new View.OnClickListener() {				
 			@Override
 			public void onClick(View v) {
@@ -32,31 +46,34 @@ public class VoicerActivity extends Activity implements IUpdateStatus {
 			}
 		});
 		
-		/*Button btnEncerrar = (Button) findViewById(R.id.btnEncerrar);
-		btnEncerrar.setOnClickListener(new View.OnClickListener() {				
+		btnContatos = (Button) findViewById(R.id.voicer_btnContatos);
+		btnContatos.setVisibility(View.INVISIBLE);
+		btnContatos.setOnClickListener(new View.OnClickListener() {				
 			@Override
 			public void onClick(View v) {
-				
-				VoicerFacade.getInstance(VoicerActivity.this).encerrarChamadaAudio();
 				
 			}
 		});
-		
-		Button btnAceitar = (Button) findViewById(R.id.btnAceitar);
-		btnAceitar.setOnClickListener(new View.OnClickListener() {				
-			@Override
-			public void onClick(View v) {
 				
-				VoicerFacade.getInstance(VoicerActivity.this).aceitarChamada();
-				
-			}
-		});*/
-		
 		lblStatus = (TextView) findViewById(R.id.voicer_lblStatus);
-		lblStatus.setText("Idle");
 		
-		VoicerFacade.getInstance(VoicerActivity.this).setMainActivity(this);
-						
+		lblRamal = (TextView) findViewById(R.id.voicer_lblRamal);
+		lblRamal.setText("Desconectado");
+		
+		// Inicializa a fachada e a engine do Audio
+		VoicerFacade.getInstance().createVoicerService(this);
+		VoicerFacade.getInstance().startSipService();
+		
+		VoicerFacade.getInstance().registerNoServidorSIP();
+		
+		// Register broadcast receivers
+		regBroadcastReceiver = new RegistrationBroadcastReceiver(
+				VoicerFacade.getInstance().getVoicerService());
+		final IntentFilter intentFilter = new IntentFilter();
+		intentFilter.addAction(NgnRegistrationEventArgs.ACTION_REGISTRATION_EVENT);
+		intentFilter.addAction(NgnInviteEventArgs.ACTION_INVITE_EVENT);
+		registerReceiver(regBroadcastReceiver, intentFilter);
+		
 	}
 	
 
@@ -80,8 +97,10 @@ public class VoicerActivity extends Activity implements IUpdateStatus {
 	protected void onDestroy() {
 		super.onDestroy();
 		
-		VoicerFacade.getInstance(VoicerActivity.this).unregisterServicoSIP();
+		VoicerFacade.getInstance().unregisterServicoSIP();
 		
+		if (regBroadcastReceiver != null)
+			unregisterReceiver(regBroadcastReceiver);
 	}
 		
 	/**
@@ -89,11 +108,23 @@ public class VoicerActivity extends Activity implements IUpdateStatus {
 	 * @param status
 	 */
 	@Override
-	public void updateStatus(final String status) {
+	public void updateStatus(final ObserverData observerData) {
+		
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				lblStatus.setText(status);
+				String strRamal = "Desconectado";
+				if (observerData.getEventType().equals(EventType.EVENT_REGISTRATION) &&
+						observerData.getRegisterState().equals(NgnRegistrationEventTypes.REGISTRATION_OK)) {
+					 strRamal = "Ramal: " + 
+						VoicerFacade.getInstance().getVoicerService().getConf().getUsuario();
+					 
+					 btnChamar.setVisibility(View.VISIBLE);
+					 btnContatos.setVisibility(View.VISIBLE);			 
+				}
+				
+				lblStatus.setText(observerData.getEventMessage());
+				lblRamal.setText(strRamal);
 			}
 		});
 	}

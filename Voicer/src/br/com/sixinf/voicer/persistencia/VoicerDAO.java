@@ -59,8 +59,8 @@ public class VoicerDAO {
 		SQLiteDatabase db = dbman.getReadableDatabase();
 		Config conf = null;
 		Cursor c = db.query(DatabaseManager.TABLE_NAME, 
-				new String[] {"_id", "ip", "porta", "ssid", "pass", 
-					"identificador", "id_playlist", "data_hora_playlist"}, 
+				new String[] {"_id", "usuario", "senha", "realm", 
+					"domain", "host", "porta"}, 
 				null, null, null, null, null);
 		
 		if (c.moveToFirst()) {
