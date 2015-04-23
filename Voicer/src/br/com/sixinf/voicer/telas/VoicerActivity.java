@@ -4,9 +4,10 @@ import org.doubango.ngn.events.NgnInviteEventArgs;
 import org.doubango.ngn.events.NgnRegistrationEventArgs;
 import org.doubango.ngn.events.NgnRegistrationEventTypes;
 
-import android.app.Activity;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,7 +19,7 @@ import br.com.sixinf.voicer.R;
 import br.com.sixinf.voicer.receivers.RegistrationBroadcastReceiver;
 import br.com.sixinf.voicer.sip.VoicerFacade;
 
-public class VoicerActivity extends Activity implements IUpdateStatus {
+public class VoicerActivity extends ActionBarActivity implements IUpdateStatus {
 	
 	private TextView lblStatus;
 	private TextView lblRamal;
@@ -80,14 +81,20 @@ public class VoicerActivity extends Activity implements IUpdateStatus {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.voicer, menu);
-		return true;
+		getMenuInflater().inflate(R.menu.setup, menu);
+		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int id = item.getItemId();
 		if (id == R.id.login_mnuSetup) {
+			
+			VoicerFacade.getInstance().unregisterServicoSIP();
+			
+			Intent it = new Intent(this, SetupActivity.class);
+			startActivityForResult(it, 100);
+			
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -120,13 +127,23 @@ public class VoicerActivity extends Activity implements IUpdateStatus {
 						VoicerFacade.getInstance().getVoicerService().getConf().getUsuario();
 					 
 					 btnChamar.setVisibility(View.VISIBLE);
-					 btnContatos.setVisibility(View.VISIBLE);			 
+					 btnContatos.setVisibility(View.VISIBLE);
+				} else {
+					btnChamar.setVisibility(View.INVISIBLE);
+					btnContatos.setVisibility(View.INVISIBLE);
 				}
 				
-				lblStatus.setText(observerData.getEventMessage());
+				lblStatus.setText(
+						observerData.getEventMessage() + 
+						(observerData.getSipMessage() != null ? ( " - " + observerData.getSipMessage()) : ""));
 				lblRamal.setText(strRamal);
 			}
 		});
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+		VoicerFacade.getInstance().registerNoServidorSIP();
 	}
 				
 }

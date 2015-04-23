@@ -5,7 +5,7 @@
     <item
         android:id="@+id/login_mnuSetup"
         android:orderInCategory="100"
-        android:showAsAction="always"
+        android:showAsAction="ifRoom"
         android:title="@string/login_mnuSetup"/>
 
 </menu>

@@ -16,7 +16,6 @@ import android.util.Log;
 import br.com.sixinf.voicer.ObserverData;
 import br.com.sixinf.voicer.ObserverData.EventType;
 import br.com.sixinf.voicer.sip.VoicerService;
-import br.com.sixinf.voicer.telas.VoicerActivity;
 
 /**
  * @author maicon
@@ -73,10 +72,7 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 			case REGISTRATION_OK:
 				Log.d("VOICER", "You are now registered :)");
 				od.setEventMessage("You are now registered :)");
-				voicerService.updateObservers(od);
-				
-				Intent i = new Intent(context, VoicerActivity.class);
-				context.startActivity(i);
+				voicerService.updateObservers(od);				
 				break;
 			case REGISTRATION_INPROGRESS:
 				Log.d("VOICER", "Trying to register...");

@@ -174,6 +174,15 @@ public class VoicerFacade implements Observer {
 		voicerService.acceptCall();
 	}
 	
+	/**
+	 * 
+	 * @param usuario
+	 * @param senha
+	 * @param realm
+	 * @param domain
+	 * @param host
+	 * @param porta
+	 */
 	public void atualizaConfiguracao(
 			String usuario, 
 			String senha, 
@@ -190,6 +199,15 @@ public class VoicerFacade implements Observer {
 		conf.setHost(host);
 		conf.setPorta(porta);
 		
+		dao.alterarConfiguracao(conf);
+		
 		voicerService.setConf(conf);
+	}
+	
+	/**
+	 * 
+	 */
+	public Config buscarConfiguracao() {
+		return dao.buscaConfiguracao();
 	}
 }

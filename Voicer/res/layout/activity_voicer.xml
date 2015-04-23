@@ -17,7 +17,8 @@
         android:paddingRight="40dp"
         android:paddingTop="20dp"
         android:text="Ramal: 30050"
-        android:textSize="24sp" />
+        android:textSize="24sp"
+        android:textStyle="bold" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -32,7 +33,9 @@
             android:layout_marginRight="40dp"
             android:background="@drawable/button_shape"
             android:text="Chamar"
-            android:textSize="22sp" />
+            android:textColor="@android:color/white"
+            android:textSize="22sp"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/voicer_btnContatos"
@@ -40,7 +43,9 @@
             android:layout_height="wrap_content"
             android:background="@drawable/button_shape"
             android:text="Contatos"
-            android:textSize="22sp" />
+            android:textColor="@android:color/white"
+            android:textSize="22sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 
