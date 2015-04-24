@@ -38,6 +38,9 @@ public class VoicerActivity extends ActionBarActivity implements IUpdateStatus {
 		btnChamar.setOnClickListener(new View.OnClickListener() {				
 			@Override
 			public void onClick(View v) {
+				Intent it = new Intent(VoicerActivity.this, ChamadaActivity.class);
+				startActivity(it);
+				
 				/*String nomePeer = txtNomePeer.getText().toString();
 				if (nomePeer.isEmpty())
 					Toast.makeText(VoicerActivity.this, 

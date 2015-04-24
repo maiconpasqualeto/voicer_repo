@@ -66,6 +66,7 @@
         
         <receiver android:name=".VoicerChamadaRecebida" >
         </receiver>
+        <activity android:name=".telas.ChamadaActivity"></activity>
 
         
     </application>
