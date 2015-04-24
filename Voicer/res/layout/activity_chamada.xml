@@ -15,7 +15,7 @@
 	        android:layout_height="wrap_content"
 	        android:ems="10"
 	        android:layout_weight="1"
-	        android:textSize="22sp" 
+	        android:textSize="44sp" 
 	        android:inputType="none">
 	        
 	    </EditText>

@@ -26,26 +26,20 @@
         android:gravity="center"
         android:paddingTop="40dp" >
 
-        <Button
+        <Button 
             android:id="@+id/voicer_btnChamar"
             android:layout_width="140dp"
             android:layout_height="wrap_content"
             android:layout_marginRight="40dp"
-            android:background="@drawable/button_shape"
-            android:text="Chamar"
-            android:textColor="@android:color/white"
-            android:textSize="22sp"
-            android:textStyle="bold" />
+            style="@style/botao_entrada"            
+            android:text="Chamar" />
 
         <Button
             android:id="@+id/voicer_btnContatos"
             android:layout_width="140dp"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_shape"
-            android:text="Contatos"
-            android:textColor="@android:color/white"
-            android:textSize="22sp"
-            android:textStyle="bold" />
+            android:text="Contatos" 
+            style="@style/botao_entrada"/>
 
     </LinearLayout>
 
