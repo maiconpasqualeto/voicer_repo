@@ -5,5 +5,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="login_mnuSetup">Configurar</string>
     <string name="title_activity_setup">Setup</string>
+    <string name="title_activity_splash_screen">Voicer</string>
 
 </resources>

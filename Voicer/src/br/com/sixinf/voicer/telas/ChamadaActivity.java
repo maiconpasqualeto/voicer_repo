@@ -3,6 +3,7 @@
  */
 package br.com.sixinf.voicer.telas;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import br.com.sixinf.voicer.R;
+import br.com.sixinf.voicer.Voicer;
 
 /**
  * @author maicon
@@ -117,7 +119,9 @@ public class ChamadaActivity extends ActionBarActivity {
 		btnVoz.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				
+				Intent it = new Intent(Voicer.getAppContext(), VozActivity.class);
+				it.putExtra("ramal", txtNumChamar.getText().toString());
+				startActivity(it);
 			}
 		});
 		btnVideo = (Button) findViewById(R.id.chamada_btnVideo);

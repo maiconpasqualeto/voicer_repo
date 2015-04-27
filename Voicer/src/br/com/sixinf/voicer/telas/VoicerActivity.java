@@ -26,6 +26,7 @@ public class VoicerActivity extends ActionBarActivity implements IUpdateStatus {
 	private Button btnChamar;
 	private Button btnContatos;
 	private RegistrationBroadcastReceiver regBroadcastReceiver;
+	private boolean registrado = false;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -64,20 +65,29 @@ public class VoicerActivity extends ActionBarActivity implements IUpdateStatus {
 		lblRamal = (TextView) findViewById(R.id.voicer_lblRamal);
 		lblRamal.setText("Desconectado");
 		
-		// Inicializa a fachada e a engine do Audio
-		VoicerFacade.getInstance().createVoicerService(this);
-		VoicerFacade.getInstance().startSipService();
-		
 		VoicerFacade.getInstance().registerNoServidorSIP();
 		
-		// Register broadcast receivers
-		regBroadcastReceiver = new RegistrationBroadcastReceiver(
-				VoicerFacade.getInstance().getVoicerService());
-		final IntentFilter intentFilter = new IntentFilter();
-		intentFilter.addAction(NgnRegistrationEventArgs.ACTION_REGISTRATION_EVENT);
-		intentFilter.addAction(NgnInviteEventArgs.ACTION_INVITE_EVENT);
-		registerReceiver(regBroadcastReceiver, intentFilter);
+		if (regBroadcastReceiver == null &&
+				!registrado ) {
 		
+			// Register broadcast receivers
+			regBroadcastReceiver = new RegistrationBroadcastReceiver(
+					VoicerFacade.getInstance().getVoicerService());
+			final IntentFilter intentFilter = new IntentFilter();
+			intentFilter.addAction(NgnRegistrationEventArgs.ACTION_REGISTRATION_EVENT);
+			intentFilter.addAction(NgnInviteEventArgs.ACTION_INVITE_EVENT);
+			registerReceiver(regBroadcastReceiver, intentFilter);
+			
+			registrado = true;
+			
+		}
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		
+		VoicerFacade.getInstance().setMainActivity(this);
 	}
 	
 
@@ -109,8 +119,11 @@ public class VoicerActivity extends ActionBarActivity implements IUpdateStatus {
 		
 		VoicerFacade.getInstance().unregisterServicoSIP();
 		
-		if (regBroadcastReceiver != null)
+		if (regBroadcastReceiver != null && 
+				registrado) {
 			unregisterReceiver(regBroadcastReceiver);
+			registrado = false;
+		}
 	}
 		
 	/**
