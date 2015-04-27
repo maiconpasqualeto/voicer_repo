@@ -1,11 +1,12 @@
-package br.com.sixinf.voicer;
+package br.com.sixinf.voicer.telas;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import br.com.sixinf.voicer.R;
+import br.com.sixinf.voicer.Voicer;
 import br.com.sixinf.voicer.sip.VoicerFacade;
-import br.com.sixinf.voicer.telas.VoicerActivity;
 
 public class SplashScreen extends Activity {
 

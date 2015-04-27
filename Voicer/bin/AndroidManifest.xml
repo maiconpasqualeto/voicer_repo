@@ -63,7 +63,7 @@
         <activity android:name=".telas.ChamadaActivity" >
         </activity>
         <activity
-            android:name=".SplashScreen"
+            android:name="br.com.sixinf.voicer.telas.SplashScreen"
             android:label="@string/title_activity_splash_screen" android:noHistory="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

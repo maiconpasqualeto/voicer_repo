@@ -23,6 +23,7 @@ public class VozActivity extends ActionBarActivity implements IUpdateStatus {
 	private TextView txtRamal;
 	private TextView lblStatus;
 	private Button btnEncerra;
+	private String numeroRamal;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -31,9 +32,10 @@ public class VozActivity extends ActionBarActivity implements IUpdateStatus {
 		setContentView(R.layout.activity_voz);
 		
 		Intent it = getIntent();
-				
+		numeroRamal = it.getStringExtra("ramal");
+		
 		txtRamal = (TextView) findViewById(R.id.voz_lblRamal);
-		txtRamal.setText("Ramal: " + it.getStringExtra("ramal"));
+		txtRamal.setText("Ramal: " + numeroRamal);
 		
 		lblStatus = (TextView) findViewById(R.id.voz_lblStatus);
 		
@@ -49,7 +51,7 @@ public class VozActivity extends ActionBarActivity implements IUpdateStatus {
 		
 		VoicerFacade.getInstance().setMainActivity(this);
 		
-		VoicerFacade.getInstance().fazerChamadaAudio(txtRamal.getText().toString());
+		VoicerFacade.getInstance().fazerChamadaAudio(numeroRamal);
 	}
 	
 	@Override

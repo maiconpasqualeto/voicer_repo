@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 import br.com.sixinf.voicer.R;
 import br.com.sixinf.voicer.Voicer;
 
@@ -119,8 +120,16 @@ public class ChamadaActivity extends ActionBarActivity {
 		btnVoz.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				String ramalChamar = txtNumChamar.getText().toString();
+				if (ramalChamar.isEmpty()){
+					Toast.makeText(
+							ChamadaActivity.this, "Número não pode ser vazio", Toast.LENGTH_LONG)
+							.show();
+					return;
+				}
+				
 				Intent it = new Intent(Voicer.getAppContext(), VozActivity.class);
-				it.putExtra("ramal", txtNumChamar.getText().toString());
+				it.putExtra("ramal", ramalChamar);
 				startActivity(it);
 			}
 		});
