@@ -3,6 +3,7 @@ package br.com.sixinf.voicer.telas;
 import org.doubango.ngn.events.NgnInviteEventArgs;
 import org.doubango.ngn.events.NgnRegistrationEventArgs;
 import org.doubango.ngn.events.NgnRegistrationEventTypes;
+import org.doubango.ngn.sip.NgnInviteSession.InviteState;
 
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -136,23 +137,40 @@ public class VoicerActivity extends ActionBarActivity implements IUpdateStatus {
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				String strRamal = "Desconectado";
-				if (observerData.getEventType().equals(EventType.EVENT_REGISTRATION) &&
-						observerData.getRegisterState().equals(NgnRegistrationEventTypes.REGISTRATION_OK)) {
-					 strRamal = "Ramal: " + 
-						VoicerFacade.getInstance().getVoicerService().getConf().getUsuario();
-					 
-					 btnChamar.setVisibility(View.VISIBLE);
-					 btnContatos.setVisibility(View.VISIBLE);
-				} else {
-					btnChamar.setVisibility(View.INVISIBLE);
-					btnContatos.setVisibility(View.INVISIBLE);
+				
+				if (observerData.getEventType().equals(EventType.EVENT_REGISTRATION)) {
+					String strRamal = "Desconectado";
+					if(observerData.getRegisterState().equals(NgnRegistrationEventTypes.REGISTRATION_OK)) {
+						 strRamal = "Ramal: " + 
+							VoicerFacade.getInstance().getVoicerService().getConf().getUsuario();
+						 
+						 btnChamar.setVisibility(View.VISIBLE);
+						 btnContatos.setVisibility(View.VISIBLE);
+					} else {
+						btnChamar.setVisibility(View.INVISIBLE);
+						btnContatos.setVisibility(View.INVISIBLE);
+					}
+					
+					lblStatus.setText(
+							observerData.getEventMessage() + 
+							(observerData.getSipMessage() != null ? ( " - " + observerData.getSipMessage()) : ""));
+					
+					lblRamal.setText(strRamal);
+					
+				} else 
+					if (observerData.getEventType().equals(EventType.EVENT_INVITE)){
+						
+						if (observerData.getInviteState().equals(InviteState.INCOMING)) {
+						
+							Intent it = new Intent(VoicerActivity.this, VozActivity.class);
+							
+							it.putExtra("ramal", observerData.getIncommingCallerId());
+							it.putExtra("chamadaRealizada", false);
+							
+							VoicerActivity.this.startActivity(it);							
+						}
 				}
 				
-				lblStatus.setText(
-						observerData.getEventMessage() + 
-						(observerData.getSipMessage() != null ? ( " - " + observerData.getSipMessage()) : ""));
-				lblRamal.setText(strRamal);
 			}
 		});
 	}

@@ -22,6 +22,7 @@ public class ObserverData implements Serializable {
 	private String sipCode;
 	private String sipMessage;	
 	private EventType eventType;
+	private String incommingCallerId;
 
 	public NgnRegistrationEventTypes getRegisterState() {
 		return registerState;
@@ -69,6 +70,14 @@ public class ObserverData implements Serializable {
 
 	public void setSipCode(String sipCode) {
 		this.sipCode = sipCode;
+	}
+
+	public String getIncommingCallerId() {
+		return incommingCallerId;
+	}
+
+	public void setIncommingCallerId(String incommingCallerId) {
+		this.incommingCallerId = incommingCallerId;
 	}
 
 	public enum EventType {

@@ -6,18 +6,18 @@ package br.com.sixinf.voicer.receivers;
 import org.doubango.ngn.NgnEngine;
 import org.doubango.ngn.events.NgnEventArgs;
 import org.doubango.ngn.events.NgnInviteEventArgs;
+import org.doubango.ngn.events.NgnMessagingEventArgs;
 import org.doubango.ngn.events.NgnRegistrationEventArgs;
 import org.doubango.ngn.sip.NgnAVSession;
+import org.doubango.ngn.sip.NgnInviteSession.InviteState;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 import br.com.sixinf.voicer.ObserverData;
-import br.com.sixinf.voicer.Voicer;
 import br.com.sixinf.voicer.ObserverData.EventType;
 import br.com.sixinf.voicer.sip.VoicerService;
-import br.com.sixinf.voicer.telas.VozActivity;
 
 /**
  * @author maicon
@@ -113,16 +113,19 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 			od.setEventType(EventType.EVENT_INVITE);
 			od.setSipMessage(args.getPhrase());
 			
+			NgnEngine mEngine = NgnEngine.getInstance();
+			
 			if (avSession == null) {
 				Log.d("VOICER", "avSession null");
 				od.setEventMessage("avSession null");
+				od.setInviteState(InviteState.NONE);
+				mEngine.getSoundService().stopRingTone();
+				mEngine.getSoundService().stopRingBackTone();
 				voicerService.updateObservers(od);
 				return;
 			}
 			
 			od.setInviteState(avSession.getState());
-			
-			NgnEngine mEngine = NgnEngine.getInstance();
 			
 			switch (avSession.getState()) {
 				case NONE:
@@ -130,13 +133,11 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 				case INCOMING:
 					Log.i("VOICER", "Incoming call");
 					od.setEventMessage("Incoming call");
-					voicerService.updateObservers(od);
+					String incommingCallerId = intent.getStringExtra(NgnMessagingEventArgs.EXTRA_REMOTE_PARTY);
+					od.setIncommingCallerId(incommingCallerId);
 					mEngine.getSoundService().startRingTone();
 					voicerService.setAvSession(avSession);
-					Intent it = new Intent(Voicer.getAppContext(), VozActivity.class);
-					it.putExtra("ramal", avSession.getFromUri());
-					it.putExtra("chamadaRealizada", false);
-					Voicer.getAppContext().startActivity(it);
+					voicerService.updateObservers(od);
 					break;
 				case INPROGRESS:
 					Log.i("VOICER", "Call in progress");
@@ -168,10 +169,10 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 				case TERMINATED:
 					Log.i("VOICER", "Call terminated");
 					od.setEventMessage("Call terminated");
-					voicerService.updateObservers(od);
 					mEngine.getSoundService().stopRingTone();
 					mEngine.getSoundService().stopRingBackTone();
-					voicerService.stopAudioCall();
+					//voicerService.stopAudioCall();
+					voicerService.updateObservers(od);
 					break;
 			}
 		}

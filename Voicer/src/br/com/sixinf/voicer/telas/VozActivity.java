@@ -49,46 +49,44 @@ public class VozActivity extends ActionBarActivity implements IUpdateStatus {
 		
 		lblStatus = (TextView) findViewById(R.id.voz_lblStatus);
 		
-		VoicerFacade.getInstance().setMainActivity(this);
-		
-		if (chamadaRealizada) {
+		btnEncerra = new Button(getApplicationContext());
+		LinearLayout.LayoutParams layoutParams = 
+				new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,	
+								 LayoutParams.WRAP_CONTENT);
+		layoutParams.gravity = Gravity.BOTTOM;
+		btnEncerra.setLayoutParams(layoutParams);
+		btnEncerra.setText("Encerrar");
+		btnEncerra.setTextSize(TypedValue.COMPLEX_UNIT_SP, 35);
+		btnEncerra.setTypeface(null, Typeface.BOLD);
+		btnEncerra.setTextColor(Color.WHITE);
+		btnEncerra.setGravity(Gravity.CENTER);
+		btnEncerra.setPadding(0, 30, 0, 30);
+		btnEncerra.setBackgroundResource(R.xml.custom_botao_vermelho);		
+		btnEncerra.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				VoicerFacade.getInstance().encerrarChamadaAudio();
 				
-			btnEncerra = new Button(getApplicationContext());
-			LinearLayout.LayoutParams layoutParams = 
-					new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,	
-									 LayoutParams.WRAP_CONTENT);
-			layoutParams.gravity = Gravity.BOTTOM;
-			btnEncerra.setLayoutParams(layoutParams);
-			btnEncerra.setText("Encerrar");
-			btnEncerra.setTextSize(TypedValue.COMPLEX_UNIT_SP, 35);
-			btnEncerra.setTypeface(null, Typeface.BOLD);
-			btnEncerra.setTextColor(Color.WHITE);
-			btnEncerra.setGravity(Gravity.CENTER);
-			btnEncerra.setPadding(0, 30, 0, 30);
-			btnEncerra.setBackgroundResource(R.xml.custom_botao_vermelho);		
-			btnEncerra.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					VoicerFacade.getInstance().encerrarChamadaAudio();
-					
-					finish();
-				}
-			});
+			}
+		});
+		
+		final LinearLayout buttonContainer = (LinearLayout) findViewById(R.id.voz_buttonsContainer);
 			
-			LinearLayout buttonContainer = (LinearLayout) findViewById(R.id.voz_buttonsContainer);
+		if (chamadaRealizada) {
+			
 			buttonContainer.addView(btnEncerra);
 			
 			VoicerFacade.getInstance().fazerChamadaAudio(numeroRamal);
 			
 		} else {
 		
-			LinearLayout.LayoutParams layoutParams = 
+			LinearLayout.LayoutParams paramsChamRec = 
 					new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,	
 									 LayoutParams.WRAP_CONTENT);
-			layoutParams.gravity = Gravity.BOTTOM;
-			layoutParams.weight = 1;
+			paramsChamRec.gravity = Gravity.BOTTOM;
+			paramsChamRec.weight = 1;
 			btnAceita = new Button(getApplicationContext());
-			btnAceita.setLayoutParams(layoutParams);
+			btnAceita.setLayoutParams(paramsChamRec);
 			btnAceita.setText("Aceita");
 			btnAceita.setTextSize(TypedValue.COMPLEX_UNIT_SP, 35);
 			btnAceita.setTypeface(null, Typeface.BOLD);
@@ -99,12 +97,15 @@ public class VozActivity extends ActionBarActivity implements IUpdateStatus {
 			btnAceita.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
+					buttonContainer.removeAllViews();
+					buttonContainer.addView(btnEncerra);
+					
 					VoicerFacade.getInstance().aceitarChamada();
 				}
 			});
 			
 			btnRejeita = new Button(getApplicationContext());
-			btnRejeita.setLayoutParams(layoutParams);
+			btnRejeita.setLayoutParams(paramsChamRec);
 			btnRejeita.setText("Rejeita");
 			btnRejeita.setTextSize(TypedValue.COMPLEX_UNIT_SP, 35);
 			btnRejeita.setTypeface(null, Typeface.BOLD);
@@ -117,17 +118,21 @@ public class VozActivity extends ActionBarActivity implements IUpdateStatus {
 				public void onClick(View v) {
 					VoicerFacade.getInstance().encerrarChamadaAudio();
 					
-					finish();
 				}
 			});
 			
-			
-			LinearLayout buttonContainer = (LinearLayout) findViewById(R.id.voz_buttonsContainer);
 			buttonContainer.addView(btnAceita);
 			buttonContainer.addView(btnRejeita);
 			
 		}
 		
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		
+		VoicerFacade.getInstance().setMainActivity(this);
 	}
 	
 	@Override
@@ -138,6 +143,14 @@ public class VozActivity extends ActionBarActivity implements IUpdateStatus {
 			public void run() {
 				
 				if (observerData.getEventType().equals(EventType.EVENT_INVITE)) {
+					if ( observerData.getSipMessage().contains("Call Terminated") ||
+							observerData.getSipMessage().contains("Call Cancelled") || 
+							observerData.getSipMessage().contains("Request cancelled") ||
+							observerData.getSipMessage().contains("Decline")) {
+						
+						finish();
+					}
+					
 					 lblStatus.setText(
 						observerData.getEventMessage() + 
 						(observerData.getSipMessage() != null ? ( " - " + observerData.getSipMessage()) : ""));

@@ -3,6 +3,8 @@
  */
 package br.com.sixinf.voicer.telas;
 
+import org.doubango.ngn.sip.NgnInviteSession.InviteState;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -11,14 +13,17 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import br.com.sixinf.voicer.ObserverData;
 import br.com.sixinf.voicer.R;
 import br.com.sixinf.voicer.Voicer;
+import br.com.sixinf.voicer.ObserverData.EventType;
+import br.com.sixinf.voicer.sip.VoicerFacade;
 
 /**
  * @author maicon
  *
  */
-public class ChamadaActivity extends ActionBarActivity {
+public class ChamadaActivity extends ActionBarActivity implements IUpdateStatus {
 	
 	private Button btn1;
 	private Button btn2;
@@ -156,6 +161,13 @@ public class ChamadaActivity extends ActionBarActivity {
 		txtNumChamar.setTextIsSelectable(true);
 		
 	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		
+		VoicerFacade.getInstance().setMainActivity(this);
+	}
 
 	/**
 	 * 
@@ -164,6 +176,23 @@ public class ChamadaActivity extends ActionBarActivity {
 	private void appendCharacter(String string) {
 		int start = txtNumChamar.getSelectionStart();		
 		txtNumChamar.getText().insert(start, string);
+	}
+
+	@Override
+	public void updateStatus(ObserverData observerData) {
+		if (observerData.getEventType().equals(EventType.EVENT_INVITE)){
+			
+			if (observerData.getInviteState().equals(InviteState.INCOMING)) {
+			
+				Intent it = new Intent(ChamadaActivity.this, VozActivity.class);
+				
+				it.putExtra("ramal", observerData.getIncommingCallerId());
+				it.putExtra("chamadaRealizada", false);
+				
+				ChamadaActivity.this.startActivity(it);
+			}
+		}
+		
 	}
 
 }
