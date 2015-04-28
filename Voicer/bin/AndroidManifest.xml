@@ -46,7 +46,7 @@
         <activity
             android:name=".telas.VoicerActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|uiMode"
-            android:label="@string/app_name" >            
+            android:label="@string/app_name" >
         </activity>
         <activity
             android:name=".telas.SetupActivity"
@@ -63,14 +63,26 @@
         <activity android:name=".telas.ChamadaActivity" >
         </activity>
         <activity
-            android:name="br.com.sixinf.voicer.telas.SplashScreen"
-            android:label="@string/title_activity_splash_screen" android:noHistory="true">
+            android:name=".telas.SplashScreen"
+            android:label="@string/title_activity_splash_screen"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Light.NoTitleBar.Fullscreen" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".telas.VozActivity"></activity>
+        <activity android:name=".telas.VozActivity" >
+        </activity>
+        <activity
+            android:name="br.com.sixinf.voicer.telas.VideoActivity"
+            android:label="@string/title_activity_video"
+            android:parentActivityName="android.support.v7.app.ActionBarActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="android.support.v7.app.ActionBarActivity" />
+        </activity>
     </application>
 
 </manifest>

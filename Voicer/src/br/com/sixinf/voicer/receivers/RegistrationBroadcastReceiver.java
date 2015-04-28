@@ -14,8 +14,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 import br.com.sixinf.voicer.ObserverData;
+import br.com.sixinf.voicer.Voicer;
 import br.com.sixinf.voicer.ObserverData.EventType;
 import br.com.sixinf.voicer.sip.VoicerService;
+import br.com.sixinf.voicer.telas.VozActivity;
 
 /**
  * @author maicon
@@ -131,6 +133,10 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 					voicerService.updateObservers(od);
 					mEngine.getSoundService().startRingTone();
 					voicerService.setAvSession(avSession);
+					Intent it = new Intent(Voicer.getAppContext(), VozActivity.class);
+					it.putExtra("ramal", avSession.getFromUri());
+					it.putExtra("chamadaRealizada", false);
+					Voicer.getAppContext().startActivity(it);
 					break;
 				case INPROGRESS:
 					Log.i("VOICER", "Call in progress");

@@ -130,6 +130,7 @@ public class ChamadaActivity extends ActionBarActivity {
 				
 				Intent it = new Intent(Voicer.getAppContext(), VozActivity.class);
 				it.putExtra("ramal", ramalChamar);
+				it.putExtra("chamadaRealizada", true);
 				startActivity(it);
 			}
 		});

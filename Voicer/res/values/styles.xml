@@ -18,10 +18,9 @@
     </style>
 	
     <style name="botao_entrada">
-        <item name="android:textColor">#FFFFFFFF</item>
         <item name="android:textSize">22sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:background">@xml/custom_botao_azul</item>
+        <item name="android:background">@xml/custom_botao_entrada</item>
     </style>
     
     <style name="header">
@@ -33,4 +32,5 @@
         <item name="android:textStyle">bold</item>
         <item name="android:background">@drawable/edit_text_header</item>
     </style>
+    
 </resources>

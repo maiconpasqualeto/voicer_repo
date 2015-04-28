@@ -18,7 +18,6 @@ import br.com.sixinf.voicer.ObserverData.EventType;
 import br.com.sixinf.voicer.R;
 import br.com.sixinf.voicer.receivers.RegistrationBroadcastReceiver;
 import br.com.sixinf.voicer.sip.VoicerFacade;
-import br.com.sixinf.voicer.sip.VoicerService;
 
 public class VoicerActivity extends ActionBarActivity implements IUpdateStatus {
 	

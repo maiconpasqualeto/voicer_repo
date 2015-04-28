@@ -5,6 +5,6 @@
     <item android:drawable="@xml/button_pressed" android:state_focused="false" android:state_pressed="true"/>
     <item android:drawable="@xml/button_disabled" android:state_focused="true" android:state_enabled="false" />
     <item android:drawable="@xml/button_disabled" android:state_focused="false" android:state_enabled="false"></item>
-    <item android:drawable="@xml/button_azul"/>
+    <item android:drawable="@xml/button_vermelho"/>
 
 </selector>

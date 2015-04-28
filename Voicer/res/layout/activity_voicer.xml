@@ -9,7 +9,7 @@
         android:id="@+id/voicer_lblRamal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ramal: 30050" 
+        android:text="Ramal: 3005" 
         style="@style/header"/>
 
     <LinearLayout
@@ -20,18 +20,20 @@
 
         <Button 
             android:id="@+id/voicer_btnChamar"
-            android:layout_width="140dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="40dp"
             style="@style/botao_entrada"            
-            android:text="Chamar" />
+            android:text="Discador" 
+            android:drawableTop="@drawable/telephone1"/>
 
         <Button
             android:id="@+id/voicer_btnContatos"
-            android:layout_width="140dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Contatos" 
-            style="@style/botao_entrada"/>
+            style="@style/botao_entrada"
+            android:text="Contatos"
+            android:drawableTop="@drawable/phonebook"/>
 
     </LinearLayout>
 
