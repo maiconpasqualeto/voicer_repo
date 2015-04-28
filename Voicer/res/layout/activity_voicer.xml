@@ -22,7 +22,7 @@
             android:id="@+id/voicer_btnChamar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="40dp"
+            android:layout_marginRight="20dp"
             style="@style/botao_entrada"            
             android:text="Discador" 
             android:drawableTop="@drawable/telephone1"/>
