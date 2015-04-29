@@ -31,8 +31,8 @@
 
         <ImageView
             android:id="@+id/voz_imgPhonecall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="180dp"
+            android:layout_height="180dp"
             android:layout_gravity="center"
             android:src="@drawable/call_phonecall" 
             android:background="@xml/image_phone_call"/>
