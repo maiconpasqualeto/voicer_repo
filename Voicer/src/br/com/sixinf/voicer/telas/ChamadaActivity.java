@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 import br.com.sixinf.voicer.ObserverData;
 import br.com.sixinf.voicer.R;
@@ -35,8 +36,8 @@ public class ChamadaActivity extends ActionBarActivity implements IUpdateStatus 
 	private Button btn8;
 	private Button btn9;
 	private Button btn0;
-	private Button btnVoz;
-	private Button btnVideo;
+	private ImageButton btnVoz;
+	private ImageButton btnVideo;
 	private Button btnApaga;
 	private EditText txtNumChamar;
 	
@@ -121,7 +122,7 @@ public class ChamadaActivity extends ActionBarActivity implements IUpdateStatus 
 				appendCharacter("0");
 			}
 		});
-		btnVoz = (Button) findViewById(R.id.chamada_btnVoz);
+		btnVoz = (ImageButton) findViewById(R.id.chamada_btnVoz);
 		btnVoz.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -139,7 +140,7 @@ public class ChamadaActivity extends ActionBarActivity implements IUpdateStatus 
 				startActivity(it);
 			}
 		});
-		btnVideo = (Button) findViewById(R.id.chamada_btnVideo);
+		btnVideo = (ImageButton) findViewById(R.id.chamada_btnVideo);
 		btnVideo.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {

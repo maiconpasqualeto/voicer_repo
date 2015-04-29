@@ -13,24 +13,26 @@
 	        android:id="@+id/chamada_txtNumChamar"
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
-	        android:ems="10"
 	        android:layout_weight="1"
-	        android:textSize="44sp" 
-	        android:inputType="none">
+	        android:ems="10"
+	        android:inputType="none"
+	        android:textSize="30sp" >
 	        
 	    </EditText>
 	    <Button
                 android:id="@+id/chamada_btnApaga"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:drawableStart="@drawable/sym_keyboard_feedback_delete"/>
+                android:drawableStart="@drawable/backspace"
+                android:background="@xml/custom_botao_entrada"/>
 	    
     </LinearLayout>
 
     <TableLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content" 
-        android:stretchColumns="0,1,2">
+        android:stretchColumns="*"
+        android:layout_margin="4dp">
 
         <TableRow
             android:id="@+id/chamada_linha1"
@@ -39,21 +41,21 @@
 
             <Button
                 android:id="@+id/chamada_btn1"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="1" 
                 style="@style/botao_teclado"/>
 
             <Button
                 android:id="@+id/chamada_btn2"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="2"
                 style="@style/botao_teclado" />
 
             <Button
                 android:id="@+id/chamada_btn3"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="3" 
                 style="@style/botao_teclado"/>
@@ -67,21 +69,21 @@
 
             <Button
                 android:id="@+id/chamada_btn4"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="4" 
                 style="@style/botao_teclado"/>
 
             <Button
                 android:id="@+id/chamada_btn5"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="5" 
                 style="@style/botao_teclado"/>
 
             <Button
                 android:id="@+id/chamada_btn6"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="6"
                 style="@style/botao_teclado" />
@@ -95,21 +97,21 @@
 
             <Button
                 android:id="@+id/chamada_btn7"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="7" 
                 style="@style/botao_teclado"/>
 
             <Button
                 android:id="@+id/chamada_btn8"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="8"
                 style="@style/botao_teclado"/>
 
             <Button
                 android:id="@+id/chamada_btn9"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="9"
                 style="@style/botao_teclado" />
@@ -121,27 +123,29 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" >
 
-            <Button
+            <ImageButton
                 android:id="@+id/chamada_btnVoz"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:drawableStart="@android:drawable/sym_action_call"
-                android:text="Voz"
-                style="@style/botao_teclado" />
+                android:src="@drawable/phone_hook"
+                android:drawablePadding="5dip"
+                android:contentDescription="icon chamada"
+                style="@style/botao_teclado_chamada" />
 
             <Button
                 android:id="@+id/chamada_btn0"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="0"
                 style="@style/botao_teclado"/>
 
-            <Button
+            <ImageButton
                 android:id="@+id/chamada_btnVideo"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:text="Video"
-                style="@style/botao_teclado" />
+                android:src="@drawable/video_call_icon_light"
+                android:padding="0dip"
+                style="@style/botao_teclado_chamada" />
 
         </TableRow>
         
