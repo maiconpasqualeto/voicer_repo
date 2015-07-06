@@ -1,6 +1,7 @@
 package br.com.sixinf.voicer.telas;
 
 import org.doubango.ngn.events.NgnInviteEventArgs;
+import org.doubango.ngn.events.NgnMediaPluginEventArgs;
 import org.doubango.ngn.events.NgnRegistrationEventArgs;
 import org.doubango.ngn.events.NgnRegistrationEventTypes;
 import org.doubango.ngn.sip.NgnInviteSession.InviteState;
@@ -77,6 +78,7 @@ public class VoicerActivity extends ActionBarActivity implements IUpdateStatus {
 			final IntentFilter intentFilter = new IntentFilter();
 			intentFilter.addAction(NgnRegistrationEventArgs.ACTION_REGISTRATION_EVENT);
 			intentFilter.addAction(NgnInviteEventArgs.ACTION_INVITE_EVENT);
+			intentFilter.addAction(NgnMediaPluginEventArgs.ACTION_MEDIA_PLUGIN_EVENT);
 			registerReceiver(regBroadcastReceiver, intentFilter);
 			
 			registrado = true;

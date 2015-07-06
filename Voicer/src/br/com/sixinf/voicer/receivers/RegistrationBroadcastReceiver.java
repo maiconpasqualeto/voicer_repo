@@ -6,8 +6,10 @@ package br.com.sixinf.voicer.receivers;
 import org.doubango.ngn.NgnEngine;
 import org.doubango.ngn.events.NgnEventArgs;
 import org.doubango.ngn.events.NgnInviteEventArgs;
+import org.doubango.ngn.events.NgnMediaPluginEventArgs;
 import org.doubango.ngn.events.NgnMessagingEventArgs;
 import org.doubango.ngn.events.NgnRegistrationEventArgs;
+import org.doubango.ngn.media.NgnMediaType;
 import org.doubango.ngn.sip.NgnAVSession;
 import org.doubango.ngn.sip.NgnInviteSession.InviteState;
 
@@ -41,7 +43,7 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 
 		final String action = intent.getAction();
 		
-		//Log.d("VOICER", "Action: " + action);
+		Log.d("VOICER", "Action: " + action);
 		ObserverData od = new ObserverData();
 		
 		// Registration Event
@@ -174,6 +176,49 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 					//voicerService.stopAudioCall();
 					voicerService.updateObservers(od);
 					break;
+			}
+		} else if(NgnMediaPluginEventArgs.ACTION_MEDIA_PLUGIN_EVENT.equals(intent.getAction())){
+			NgnMediaPluginEventArgs args = intent.getParcelableExtra(NgnMediaPluginEventArgs.EXTRA_EMBEDDED);
+			if (args == null) {
+				Log.e("VOICER", "Invalid event args for Video call");
+				return;
+			}
+			
+			od.setEventType(EventType.EVENT_MEDIA_PLUGIN);
+			
+			
+			switch(args.getEventType()){
+				case STARTED_OK: //started or restarted (e.g. reINVITE)
+				{
+					Log.e("VOICER", "Action Media - STARTED_OK");
+					if ((args.getMediaType() == NgnMediaType.AudioVideo || args.getMediaType() == NgnMediaType.Video)) {
+						od.setEventMessage("STARTED_OK");
+						voicerService.updateObservers(od);
+					}
+					break;
+				}
+				case PREPARED_OK:
+					Log.e("VOICER", "Action Media - PREPARED_OK");
+					break;
+				case PREPARED_NOK:
+					Log.e("VOICER", "Action Media - PREPARED_OK");
+					break;
+				case STARTED_NOK:
+					Log.e("VOICER", "Action Media - STARTED_NOK");
+					break;
+				case STOPPED_OK:
+					Log.e("VOICER", "Action Media - STOPPED_OK");
+					break;
+				case STOPPED_NOK:
+					Log.e("VOICER", "Action Media - STOPPED_NOK");
+					break;
+				case PAUSED_OK:
+					Log.e("VOICER", "Action Media - PAUSED_OK");
+					break;
+				case PAUSED_NOK:
+					Log.e("VOICER", "Action Media - PAUSED_NOK");
+					break;
+				
 			}
 		}
 	}

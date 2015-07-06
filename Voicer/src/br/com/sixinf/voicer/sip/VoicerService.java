@@ -13,9 +13,11 @@ import org.doubango.ngn.sip.NgnAVSession;
 import org.doubango.ngn.utils.NgnConfigurationEntry;
 
 import br.com.sixinf.voicer.ObserverData;
+import br.com.sixinf.voicer.Voicer;
 import br.com.sixinf.voicer.persistencia.Config;
 import android.app.Activity;
 import android.util.Log;
+import android.view.View;
 
 /**
  * @author maicon
@@ -186,9 +188,26 @@ public class VoicerService extends Observable {
 		avSession = NgnAVSession.createOutgoingSession(
 				engine.getSipService().getSipStack(), NgnMediaType.Video);
 		
-		// TODO [Maicon] ver como faz
 		engine.getSoundService().startRingBackTone();
 		
 		return avSession.makeCall(sipUri);
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public View startVideoConsumerPreview() {
+		avSession.setContext(Voicer.getAppContext());
+		return avSession.startVideoConsumerPreview();
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public View startVideoProducerPreview() {
+		avSession.setContext(Voicer.getAppContext());
+		return avSession.startVideoProducerPreview();
 	}
 }

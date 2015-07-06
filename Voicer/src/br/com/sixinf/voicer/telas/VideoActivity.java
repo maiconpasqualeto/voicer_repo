@@ -5,12 +5,16 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.LinearLayout.LayoutParams;
@@ -28,6 +32,8 @@ public class VideoActivity extends ActionBarActivity implements IUpdateStatus {
 	private Button btnRejeita;
 	private String numeroRamal;
 	private boolean chamadaRealizada;
+	private FrameLayout videoLocalView;
+	private FrameLayout videoRemotoView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -119,6 +125,10 @@ public class VideoActivity extends ActionBarActivity implements IUpdateStatus {
 			buttonContainer.addView(btnRejeita);
 			
 		}
+		
+		videoLocalView = (FrameLayout) findViewById(R.id.video_local_video);
+		videoRemotoView = (FrameLayout) findViewById(R.id.video_remote_video);
+		
 	}
 	
 	@Override
@@ -162,10 +172,35 @@ public class VideoActivity extends ActionBarActivity implements IUpdateStatus {
 						finish();
 					}
 					
+					if (observerData.getSipMessage() != null &&
+							observerData.getSipMessage().equals("Dialog connected")) {
+						
+						Log.e("VOICER", observerData.getSipMessage());
+						// Starta video local
+						videoLocalView.removeAllViews();
+						View localPreview = VoicerFacade.getInstance().startVideoLocal();
+						if (localPreview != null)
+							videoLocalView.addView(localPreview);
+						
+						// Starta video remoto
+						videoRemotoView.removeAllViews();
+				        View remotePreview = VoicerFacade.getInstance().startVideoRemoto();
+						if(remotePreview != null){					            
+				            videoRemotoView.addView(remotePreview);
+				        }
+					}
+					
 					 lblStatus.setText(
 						observerData.getEventMessage() + 
 						(observerData.getSipMessage() != null ? ( " - " + observerData.getSipMessage()) : ""));
+				} else 
+					if (observerData.getEventType().equals(EventType.EVENT_MEDIA_PLUGIN)){
+						if ("STARTED_OK".equals(observerData.getEventMessage())) {
+							
+						}
 				}
+				
+				
 			}
 		});
 		

@@ -5,6 +5,7 @@ package br.com.sixinf.voicer;
 
 import java.io.Serializable;
 
+import org.doubango.ngn.events.NgnMediaPluginEventTypes;
 import org.doubango.ngn.events.NgnRegistrationEventTypes;
 import org.doubango.ngn.sip.NgnInviteSession;
 
@@ -18,6 +19,7 @@ public class ObserverData implements Serializable {
 	
 	private NgnRegistrationEventTypes registerState; 
 	private NgnInviteSession.InviteState inviteState;
+	private NgnMediaPluginEventTypes mediaEventState;
 	private String eventMessage;
 	private String sipCode;
 	private String sipMessage;	
@@ -80,9 +82,18 @@ public class ObserverData implements Serializable {
 		this.incommingCallerId = incommingCallerId;
 	}
 
+	public NgnMediaPluginEventTypes getMediaEventState() {
+		return mediaEventState;
+	}
+
+	public void setMediaEventState(NgnMediaPluginEventTypes mediaEventState) {
+		this.mediaEventState = mediaEventState;
+	}
+
 	public enum EventType {
 		EVENT_REGISTRATION,
-		EVENT_INVITE;
+		EVENT_INVITE,
+		EVENT_MEDIA_PLUGIN;
 	}
 		
 }

@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.net.sip.SipAudioCall;
 import android.net.sip.SipManager;
 import android.net.sip.SipProfile;
+import android.view.View;
 import br.com.sixinf.voicer.ObserverData;
 import br.com.sixinf.voicer.Voicer;
 import br.com.sixinf.voicer.persistencia.Config;
@@ -217,6 +218,22 @@ public class VoicerFacade implements Observer {
 	public void fazerChamadaVideo(String nomePeer) {
 		String sipUri = "sip:" + nomePeer + "@openjsip.net";
 		voicerService.makeVideoCall(sipUri);
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public View startVideoRemoto(){
+		return voicerService.startVideoConsumerPreview(); 
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public View startVideoLocal() {		
+		return voicerService.startVideoProducerPreview();
 	}
 	
 }
