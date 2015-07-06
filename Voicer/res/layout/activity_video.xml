@@ -22,40 +22,27 @@
         android:textSize="30sp"
         android:textStyle="bold" />
 
-    <LinearLayout
-        android:layout_width="wrap_content"
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_weight="1"
-        android:orientation="horizontal" >
+        android:layout_weight="1" >
 
-        <ImageView
-            android:id="@+id/video_imgPhonecall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:src="@drawable/call_phonecall" 
-            android:background="@xml/image_phone_call"/>
+        <FrameLayout android:id="@+id/video_remote_video" android:layout_width="fill_parent" android:orientation="horizontal" android:layout_gravity="bottom|right" android:gravity="bottom|right" android:layout_height="fill_parent" android:background="@android:color/black">
+	        
+	    </FrameLayout>
+	
+        <FrameLayout android:layout_alignParentRight="true" android:layout_alignParentBottom="true" android:minHeight="90dp" android:minWidth="90dp" android:background="@drawable/grad_whiterounded" android:layout_margin="4dp" android:padding="4dp" android:layout_height="94dp" android:layout_width="94dp">
+	        <FrameLayout android:layout_gravity="center" android:id="@+id/video_local_video" android:layout_height="fill_parent" android:layout_width="fill_parent"></FrameLayout>
+	    </FrameLayout>
 
-    </LinearLayout>
+    </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal" >
-    
-	    <Button
-	        android:id="@+id/video_btnEncerrar"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:layout_gravity="bottom"
-	        android:paddingBottom="30dp"
-	        android:paddingTop="30dp"
-	        android:text="Encerrar"
-	        android:textSize="35sp"
-	        android:textStyle="bold"
-	        android:textColor="@android:color/white"
-	        android:background="@xml/custom_botao_vermelho" />
+        android:orientation="horizontal"
+        android:id="@+id/video_buttonsContainer" >
+    	
     
     </LinearLayout>
     

@@ -144,7 +144,18 @@ public class ChamadaActivity extends ActionBarActivity implements IUpdateStatus 
 		btnVideo.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				String ramalChamar = txtNumChamar.getText().toString();
+				if (ramalChamar.isEmpty()){
+					Toast.makeText(
+							ChamadaActivity.this, "Número não pode ser vazio", Toast.LENGTH_LONG)
+							.show();
+					return;
+				}
 				
+				Intent it = new Intent(Voicer.getAppContext(), VideoActivity.class);
+				it.putExtra("ramal", ramalChamar);
+				it.putExtra("chamadaRealizada", true);
+				startActivity(it);
 			}
 		});
 		btnApaga = (Button) findViewById(R.id.chamada_btnApaga);

@@ -141,7 +141,7 @@ public class VoicerService extends Observable {
 	/**
 	 * 
 	 */
-	public void stopAudioCall() {
+	public void stopAudioVideoCall() {
 		if (avSession != null)
 			avSession.hangUpCall();
 	}
@@ -175,5 +175,20 @@ public class VoicerService extends Observable {
 		this.conf = conf;
 	}
 	
-	
+	/**
+	 * 
+	 */
+	public boolean makeVideoCall(String sipUri) {
+		if (avSession != null &&
+				avSession.isActive())
+			return false;
+		
+		avSession = NgnAVSession.createOutgoingSession(
+				engine.getSipService().getSipStack(), NgnMediaType.Video);
+		
+		// TODO [Maicon] ver como faz
+		engine.getSoundService().startRingBackTone();
+		
+		return avSession.makeCall(sipUri);
+	}
 }

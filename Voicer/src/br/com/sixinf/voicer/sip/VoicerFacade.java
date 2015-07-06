@@ -163,8 +163,8 @@ public class VoicerFacade implements Observer {
 	/**
 	 * 
 	 */
-	public void encerrarChamadaAudio() {
-		voicerService.stopAudioCall();
+	public void encerrarChamadaAudioVideo() {
+		voicerService.stopAudioVideoCall();
 	}
 
 	/*
@@ -210,4 +210,13 @@ public class VoicerFacade implements Observer {
 	public Config buscarConfiguracao() {
 		return dao.buscaConfiguracao();
 	}
+	
+	/**
+	 * 
+	 */
+	public void fazerChamadaVideo(String nomePeer) {
+		String sipUri = "sip:" + nomePeer + "@openjsip.net";
+		voicerService.makeVideoCall(sipUri);
+	}
+	
 }

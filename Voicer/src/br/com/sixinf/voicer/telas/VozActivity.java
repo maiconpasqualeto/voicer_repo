@@ -65,7 +65,7 @@ public class VozActivity extends ActionBarActivity implements IUpdateStatus {
 		btnEncerra.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				VoicerFacade.getInstance().encerrarChamadaAudio();
+				VoicerFacade.getInstance().encerrarChamadaAudioVideo();
 				
 			}
 		});
@@ -116,7 +116,7 @@ public class VozActivity extends ActionBarActivity implements IUpdateStatus {
 			btnRejeita.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					VoicerFacade.getInstance().encerrarChamadaAudio();
+					VoicerFacade.getInstance().encerrarChamadaAudioVideo();
 					
 				}
 			});
