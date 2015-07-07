@@ -18,6 +18,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 import br.com.sixinf.voicer.ObserverData;
+import br.com.sixinf.voicer.Voicer;
 import br.com.sixinf.voicer.ObserverData.EventType;
 import br.com.sixinf.voicer.sip.VoicerService;
 
@@ -138,6 +139,7 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 					String incommingCallerId = intent.getStringExtra(NgnMessagingEventArgs.EXTRA_REMOTE_PARTY);
 					od.setIncommingCallerId(incommingCallerId);
 					mEngine.getSoundService().startRingTone();
+					avSession.setContext(Voicer.getAppContext());
 					voicerService.setAvSession(avSession);
 					voicerService.updateObservers(od);
 					break;

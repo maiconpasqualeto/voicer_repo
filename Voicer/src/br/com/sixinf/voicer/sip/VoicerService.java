@@ -11,6 +11,7 @@ import org.doubango.ngn.services.INgnConfigurationService;
 import org.doubango.ngn.services.INgnSipService;
 import org.doubango.ngn.sip.NgnAVSession;
 import org.doubango.ngn.utils.NgnConfigurationEntry;
+import org.doubango.ngn.utils.NgnContentType;
 
 import br.com.sixinf.voicer.ObserverData;
 import br.com.sixinf.voicer.Voicer;
@@ -147,15 +148,7 @@ public class VoicerService extends Observable {
 		if (avSession != null)
 			avSession.hangUpCall();
 	}
-	
-	/**
-	 * 
-	 * @param incommingSession
-	 */
-	public void receiveAudioCall(NgnAVSession incommingSession){
-		this.avSession = incommingSession;
-	}
-	
+			
 	/**
 	 * 
 	 */
@@ -186,7 +179,10 @@ public class VoicerService extends Observable {
 			return false;
 		
 		avSession = NgnAVSession.createOutgoingSession(
-				engine.getSipService().getSipStack(), NgnMediaType.Video);
+				engine.getSipService().getSipStack(), NgnMediaType.AudioVideo);
+		
+		avSession.setContext(Voicer.getAppContext());
+		avSession.setRotation(avSession.compensCamRotation(true));
 		
 		engine.getSoundService().startRingBackTone();
 		
@@ -207,7 +203,19 @@ public class VoicerService extends Observable {
 	 * @return
 	 */
 	public View startVideoProducerPreview() {
-		avSession.setContext(Voicer.getAppContext());
 		return avSession.startVideoProducerPreview();
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean isVideoCall() {
+		if (avSession != null &&
+				( avSession.getMediaType() == NgnMediaType.AudioVideo || 
+					avSession.getMediaType() == NgnMediaType.Video) )
+			return true;
+		
+		return false;
 	}
 }

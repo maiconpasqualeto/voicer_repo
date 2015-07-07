@@ -195,8 +195,13 @@ public class ChamadaActivity extends ActionBarActivity implements IUpdateStatus 
 		if (observerData.getEventType().equals(EventType.EVENT_INVITE)){
 			
 			if (observerData.getInviteState().equals(InviteState.INCOMING)) {
-			
-				Intent it = new Intent(ChamadaActivity.this, VideoActivity.class);
+				
+				Intent it = null;
+				
+				if (VoicerFacade.getInstance().isVideoCall())				
+					it = new Intent(ChamadaActivity.this, VideoActivity.class);
+				else 
+					it = new Intent(ChamadaActivity.this, VozActivity.class);
 				
 				it.putExtra("ramal", observerData.getIncommingCallerId());
 				it.putExtra("chamadaRealizada", false);

@@ -236,4 +236,12 @@ public class VoicerFacade implements Observer {
 		return voicerService.startVideoProducerPreview();
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean isVideoCall() {
+		return voicerService.isVideoCall();
+	}
+	
 }
