@@ -2,6 +2,7 @@ package br.com.sixinf.voicer.telas;
 
 import org.doubango.ngn.events.NgnInviteEventArgs;
 import org.doubango.ngn.events.NgnMediaPluginEventArgs;
+import org.doubango.ngn.events.NgnMessagingEventArgs;
 import org.doubango.ngn.events.NgnRegistrationEventArgs;
 import org.doubango.ngn.events.NgnRegistrationEventTypes;
 import org.doubango.ngn.sip.NgnInviteSession.InviteState;
@@ -164,12 +165,17 @@ public class VoicerActivity extends ActionBarActivity implements IUpdateStatus {
 						
 						if (observerData.getInviteState().equals(InviteState.INCOMING)) {
 						
-							Intent it = new Intent(VoicerActivity.this, VozActivity.class);
+							Intent it = null;
+							
+							if (VoicerFacade.getInstance().isVideoCall())				
+								it = new Intent(VoicerActivity.this, VideoActivity.class);
+							else 
+								it = new Intent(VoicerActivity.this, VozActivity.class);
 							
 							it.putExtra("ramal", observerData.getIncommingCallerId());
 							it.putExtra("chamadaRealizada", false);
 							
-							VoicerActivity.this.startActivity(it);							
+							VoicerActivity.this.startActivity(it);
 						}
 				}
 				

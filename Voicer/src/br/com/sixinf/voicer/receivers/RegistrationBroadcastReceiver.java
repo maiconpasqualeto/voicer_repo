@@ -7,7 +7,6 @@ import org.doubango.ngn.NgnEngine;
 import org.doubango.ngn.events.NgnEventArgs;
 import org.doubango.ngn.events.NgnInviteEventArgs;
 import org.doubango.ngn.events.NgnMediaPluginEventArgs;
-import org.doubango.ngn.events.NgnMessagingEventArgs;
 import org.doubango.ngn.events.NgnRegistrationEventArgs;
 import org.doubango.ngn.media.NgnMediaType;
 import org.doubango.ngn.sip.NgnAVSession;
@@ -18,8 +17,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 import br.com.sixinf.voicer.ObserverData;
-import br.com.sixinf.voicer.Voicer;
 import br.com.sixinf.voicer.ObserverData.EventType;
+import br.com.sixinf.voicer.Voicer;
 import br.com.sixinf.voicer.sip.VoicerService;
 
 /**
@@ -136,17 +135,20 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 				case INCOMING:
 					Log.i("VOICER", "Incoming call");
 					od.setEventMessage("Incoming call");
-					String incommingCallerId = intent.getStringExtra(NgnMessagingEventArgs.EXTRA_REMOTE_PARTY);
+					String incommingCallerId = avSession.getRemotePartyDisplayName();
 					od.setIncommingCallerId(incommingCallerId);
 					mEngine.getSoundService().startRingTone();
 					avSession.setContext(Voicer.getAppContext());
+					voicerService.habilitaSpeakerphone();
 					voicerService.setAvSession(avSession);
 					voicerService.updateObservers(od);
 					break;
 				case INPROGRESS:
 					Log.i("VOICER", "Call in progress");
 					od.setEventMessage("Call in progress");
-					voicerService.updateObservers(od);
+					voicerService.habilitaSpeakerphone();					
+					mEngine.getSoundService().startRingBackTone();
+					voicerService.updateObservers(od);					
 					break;
 				case REMOTE_RINGING:
 					Log.i("VOICER", "Remote party is ringing");
@@ -160,7 +162,7 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 					break;
 				case INCALL:
 					Log.i("VOICER", "Call connected");
-					od.setEventMessage("Call connected");
+					od.setEventMessage("Call connected");					
 					voicerService.updateObservers(od);
 					mEngine.getSoundService().stopRingTone();
 					mEngine.getSoundService().stopRingBackTone();
@@ -175,7 +177,7 @@ public class RegistrationBroadcastReceiver extends BroadcastReceiver {
 					od.setEventMessage("Call terminated");
 					mEngine.getSoundService().stopRingTone();
 					mEngine.getSoundService().stopRingBackTone();
-					//voicerService.stopAudioCall();
+					voicerService.setAvSession(null);
 					voicerService.updateObservers(od);
 					break;
 			}

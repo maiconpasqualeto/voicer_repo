@@ -11,31 +11,32 @@
         android:text="Ramal: 3005"
         style="@style/header"/>
     
-    <TextView
-        android:id="@+id/video_lblStatus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:paddingBottom="20dp"
-        android:paddingTop="20dp"
-        android:text="Chamando..."
-        android:textSize="16sp"
-        android:textStyle="bold" />
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1" >
-
+        
         <FrameLayout 
             android:id="@+id/video_remote_video" 
             android:layout_width="match_parent"  
             android:layout_height="match_parent"
             android:layout_gravity="bottom|right" 
             android:gravity="bottom|right" 
-            android:background="@android:color/black">
+            android:background="@android:color/black">            
 	        
 	    </FrameLayout>
+	    
+        <TextView
+	        android:id="@+id/video_lblStatus"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:gravity="center"
+	        android:paddingBottom="20dp"
+	        android:paddingTop="20dp"
+	        android:text="Chamando..."
+	        android:textSize="16sp"
+	        android:textStyle="bold" 
+	        android:background="@android:color/white"/>
 	
         <FrameLayout 
             android:layout_alignParentRight="true" 

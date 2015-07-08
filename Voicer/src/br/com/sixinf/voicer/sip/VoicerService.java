@@ -5,7 +5,6 @@ package br.com.sixinf.voicer.sip;
 
 import java.util.Observable;
 
-import org.doubango.ngn.NgnApplication;
 import org.doubango.ngn.NgnEngine;
 import org.doubango.ngn.media.NgnMediaType;
 import org.doubango.ngn.services.INgnConfigurationService;
@@ -136,8 +135,6 @@ public class VoicerService extends Observable {
 		avSession = NgnAVSession.createOutgoingSession(
 				engine.getSipService().getSipStack(), NgnMediaType.Audio);
 		
-		engine.getSoundService().startRingBackTone();
-		
 		return avSession.makeCall(sipUri);
 	}
 	
@@ -182,9 +179,7 @@ public class VoicerService extends Observable {
 				engine.getSipService().getSipStack(), NgnMediaType.AudioVideo);
 		
 		avSession.setContext(Voicer.getAppContext());
-		
-		engine.getSoundService().startRingBackTone();
-		
+				
 		return avSession.makeCall(sipUri);
 	}
 	
@@ -218,5 +213,13 @@ public class VoicerService extends Observable {
 			return true;
 		
 		return false;
+	}
+	
+	/**
+	 * 
+	 */
+	public void habilitaSpeakerphone() {
+		if (avSession != null)
+			avSession.setSpeakerphoneOn(true);
 	}
 }

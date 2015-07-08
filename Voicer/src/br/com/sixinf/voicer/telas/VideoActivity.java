@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.opengl.Visibility;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -190,11 +191,16 @@ public class VideoActivity extends ActionBarActivity implements IUpdateStatus {
 						if(remotePreview != null){
 				            videoRemotoView.addView(remotePreview);
 				        }
-					}
+						
+						lblStatus.setVisibility(View.INVISIBLE);
+						
+					} else {
+						lblStatus.setVisibility(View.VISIBLE);
 					
-					 lblStatus.setText(
-						observerData.getEventMessage() + 
-						(observerData.getSipMessage() != null ? ( " - " + observerData.getSipMessage()) : ""));
+						lblStatus.setText(
+							observerData.getEventMessage() + 
+							(observerData.getSipMessage() != null ? ( " - " + observerData.getSipMessage()) : ""));
+					}
 				} else 
 					if (observerData.getEventType().equals(EventType.EVENT_MEDIA_PLUGIN)){
 						if ("STARTED_OK".equals(observerData.getEventMessage())) {
