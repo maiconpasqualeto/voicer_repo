@@ -46,7 +46,8 @@
         <activity
             android:name=".telas.VoicerActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|uiMode"
-            android:label="@string/app_name" >
+            android:label="@string/app_name" 
+            android:screenOrientation="portrait">
         </activity>
         <activity
             android:name=".telas.SetupActivity"
@@ -77,11 +78,9 @@
         </activity>
         <activity
             android:name="br.com.sixinf.voicer.telas.VideoActivity"
-            android:label="@string/title_activity_video"
-            android:parentActivityName="android.support.v7.app.ActionBarActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="android.support.v7.app.ActionBarActivity" />
+            android:label="@string/title_activity_video" 
+            android:configChanges="keyboardHidden|orientation|screenSize|uiMode"
+            android:screenOrientation="portrait">
         </activity>
     </application>
 

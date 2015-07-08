@@ -1,6 +1,7 @@
 package br.com.sixinf.voicer.telas;
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -184,8 +186,8 @@ public class VideoActivity extends ActionBarActivity implements IUpdateStatus {
 						
 						// Starta video remoto
 						videoRemotoView.removeAllViews();
-				        View remotePreview = VoicerFacade.getInstance().startVideoRemoto();
-						if(remotePreview != null){					            
+						SurfaceView remotePreview = (SurfaceView) VoicerFacade.getInstance().startVideoRemoto();
+						if(remotePreview != null){
 				            videoRemotoView.addView(remotePreview);
 				        }
 					}
