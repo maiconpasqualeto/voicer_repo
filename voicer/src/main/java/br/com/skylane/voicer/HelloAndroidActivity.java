@@ -1,14 +1,13 @@
 package br.com.skylane.voicer;
 
 import android.app.Activity;
-import android.hardware.Camera;
 import android.os.Bundle;
 import android.view.Menu;
 import android.widget.FrameLayout;
 import br.com.skylane.voicer.camera.CameraPreview;
 import br.com.skylane.voicer.camera.CameraService;
 
-@SuppressWarnings("deprecation")
+
 public class HelloAndroidActivity extends Activity {
 	
     /**
@@ -22,10 +21,9 @@ public class HelloAndroidActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        Camera c = CameraService.getInstance().getFrontCamera();        
-        CameraPreview cp = new CameraPreview(this, c);        
+        CameraPreview cp = new CameraPreview(this);        
         FrameLayout previewLocal = (FrameLayout) findViewById(R.id.video_local_video);
-		previewLocal.addView(cp);        
+		previewLocal.addView(cp);
     }
     
     

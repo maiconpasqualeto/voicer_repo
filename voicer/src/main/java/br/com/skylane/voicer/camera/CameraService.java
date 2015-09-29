@@ -5,7 +5,6 @@ package br.com.skylane.voicer.camera;
 
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
-
 /**
  * @author maicon
  *
@@ -21,7 +20,7 @@ public class CameraService {
 		return service;
 	}
 	
-	private Camera mCamera;
+	private Camera mCamera;	
 		
 	/**
 	 * 
@@ -62,5 +61,5 @@ public class CameraService {
 			mCamera = null;
 		}
     }
-
+	
 }
