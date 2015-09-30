@@ -13,7 +13,6 @@ import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.util.Log;
 import android.view.SurfaceHolder;
-import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
 
 /**
@@ -21,7 +20,7 @@ import android.view.SurfaceView;
  *
  */
 @SuppressWarnings("deprecation")
-public class CameraPreview extends SurfaceView implements Callback {
+public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 	
 	private SurfaceHolder mHolder;
 	private Camera mCamera;
@@ -69,7 +68,7 @@ public class CameraPreview extends SurfaceView implements Callback {
 	 * 
 	 * @return
 	 */
-	private boolean realyStart() {
+	private boolean mediaRecorderStart() {
         
         myMediaRecorder.setPreviewDisplay(mHolder.getSurface());
         
@@ -110,7 +109,7 @@ public class CameraPreview extends SurfaceView implements Callback {
         myMediaRecorder.setMaxDuration(9600000); 	// Set max duration 4 hours
         //myMediaRecorder.setMaxFileSize(1600000000); // Set max file size 16G
         myMediaRecorder.setOnInfoListener(streamingEventHandler);
-        return realyStart();
+        return mediaRecorderStart();
     }
 
     /**
@@ -121,7 +120,7 @@ public class CameraPreview extends SurfaceView implements Callback {
     public boolean StartRecording(String targetFile) {
         myMediaRecorder.setOutputFile(targetFile);
         
-        return realyStart();
+        return mediaRecorderStart();
     }
     
     /**
