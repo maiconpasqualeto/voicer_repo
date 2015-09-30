@@ -24,7 +24,9 @@ public class SocketService {
 	public void enviarPacoteServidor(ByteBuffer dados) {
 		try {
 			socket.connect(new InetSocketAddress("192.168.25.155", 12345));
-			ParcelFileDescriptor pfd = ParcelFileDescriptor.fromDatagramSocket(socket);			
+			ParcelFileDescriptor pfd = ParcelFileDescriptor.fromDatagramSocket(socket);		
+			
+			
 		} catch (SocketException e) {
 			Log.e("VOICER", "Erro ao enviar pacote", e);
 		}
