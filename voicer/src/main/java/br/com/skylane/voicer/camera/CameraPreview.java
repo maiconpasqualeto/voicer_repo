@@ -3,15 +3,14 @@
  */
 package br.com.skylane.voicer.camera;
 
-import java.io.FileDescriptor;
 import java.io.IOException;
 
 import android.content.Context;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
-import android.media.CamcorderProfile;
-import android.media.MediaRecorder;
+import android.media.MediaCodec;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -24,13 +23,25 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 	
 	private SurfaceHolder mHolder;
 	private Camera mCamera;
-	private MediaRecorder myMediaRecorder;
+	private static final String CODEC_NAME = "video/avc";
 	
 	public CameraPreview(Context context) {
 		super(context);
 		
 		mHolder = getHolder();
 		mHolder.addCallback(this);
+		
+		MediaCodec mc;
+		try {
+			
+			mc = MediaCodec.createByCodecName(CODEC_NAME);
+			Surface s = mc.createInputSurface();
+			
+			
+		} catch (IOException e) {
+			Log.e("VOICER", "Erro ao definir codec video", e);
+		}
+		
 		
 		mCamera = CameraService.getInstance().getFrontCamera(); 
 		
@@ -43,7 +54,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 	 * @param wid
 	 * @param hei
 	 */
-	public void prepareMedia(int wid, int hei) {
+	/*public void prepareMedia(int wid, int hei) {
         myMediaRecorder =  new MediaRecorder();
         mCamera.stopPreview();
         mCamera.unlock();
@@ -62,13 +73,13 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         targetProfile.fileFormat = MediaRecorder.OutputFormat.MPEG_4;
         
         myMediaRecorder.setProfile(targetProfile);
-    }
+    }*/
 	
 	/**
 	 * 
 	 * @return
 	 */
-	private boolean mediaRecorderStart() {
+	/*private boolean mediaRecorderStart() {
         
         myMediaRecorder.setPreviewDisplay(mHolder.getSurface());
         
@@ -97,44 +108,44 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         }
 
         return true;
-    }
+    }*/
 
 	/**
 	 * 
 	 * @param targetFd
 	 * @return
 	 */
-    public boolean StartStreaming(FileDescriptor targetFd) {
+    /*public boolean StartStreaming(FileDescriptor targetFd) {
         myMediaRecorder.setOutputFile(targetFd);
         myMediaRecorder.setMaxDuration(9600000); 	// Set max duration 4 hours
         //myMediaRecorder.setMaxFileSize(1600000000); // Set max file size 16G
         myMediaRecorder.setOnInfoListener(streamingEventHandler);
         return mediaRecorderStart();
-    }
+    }*/
 
     /**
      * 
      * @param targetFile
      * @return
      */
-    public boolean StartRecording(String targetFile) {
+    /*public boolean StartRecording(String targetFile) {
         myMediaRecorder.setOutputFile(targetFile);
         
         return mediaRecorderStart();
-    }
+    }*/
     
     /**
      * 
      */
-    public void StopMedia() {
+    /*public void StopMedia() {
         myMediaRecorder.stop();
         releaseMediaRecorder();        
-    }
+    }*/
 
     /**
      * 
      */
-    private void releaseMediaRecorder(){
+    /*private void releaseMediaRecorder(){
         if (myMediaRecorder != null) {
         	myMediaRecorder.reset();   // clear recorder configuration
         	myMediaRecorder.release(); // release the recorder object
@@ -151,7 +162,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         public void onInfo(MediaRecorder mr, int what, int extra) {
             Log.d("TEAONLY", "MediaRecorder event = " + what);    
         }
-    };
+    };*/
 
 
 	/* (non-Javadoc)
