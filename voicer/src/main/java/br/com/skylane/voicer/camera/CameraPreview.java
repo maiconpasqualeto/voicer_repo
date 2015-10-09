@@ -35,7 +35,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 		try {
 			
 			mc = MediaCodec.createByCodecName(CODEC_NAME);
-			Surface s = mc.createInputSurface();
+			Surface surface = mc.createInputSurface();
+			((SurfaceView)this).addMediaCodecSurface(surface);
 			
 			
 		} catch (IOException e) {
