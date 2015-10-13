@@ -10,6 +10,8 @@ import br.com.skylane.voicer.camera.CameraService;
 
 public class HelloAndroidActivity extends Activity {
 	
+	private CameraPreview cp;
+	
     /**
      * Called when the activity is first created.
      * @param savedInstanceState If the activity is being re-initialized after 
@@ -21,7 +23,7 @@ public class HelloAndroidActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        CameraPreview cp = new CameraPreview(this);        
+        cp = new CameraPreview(this);        
         FrameLayout previewLocal = (FrameLayout) findViewById(R.id.video_local_video);
 		previewLocal.addView(cp);
     }
@@ -38,6 +40,9 @@ public class HelloAndroidActivity extends Activity {
     @Override
     protected void onDestroy() {
     	super.onDestroy();
+    	
+    	if (cp != null)
+    		cp.releaseEncoder();
     	
     	CameraService.getInstance().releaseCamera();
     }

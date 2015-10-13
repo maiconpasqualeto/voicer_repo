@@ -1,0 +1,14 @@
+/**
+ * 
+ */
+package br.com.skylane.voicer;
+
+/**
+ * @author maicon
+ *
+ */
+public class VoicerHelper {
+	
+	public static final boolean VERBOSE = true;
+
+}

@@ -6,13 +6,18 @@ package br.com.skylane.voicer.camera;
 import java.io.IOException;
 
 import android.content.Context;
+import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaFormat;
 import android.util.Log;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import br.com.skylane.voicer.VoicerHelper;
+import br.com.skylane.voicer.view.CodecInputSurface;
+import br.com.skylane.voicer.view.SurfaceTextureManager;
 
 /**
  * @author maicon
@@ -21,9 +26,19 @@ import android.view.SurfaceView;
 @SuppressWarnings("deprecation")
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 	
+	private static final String TAG = "VOICER";
+	
 	private SurfaceHolder mHolder;
 	private Camera mCamera;
-	private static final String CODEC_NAME = "video/avc";
+	private CodecInputSurface mInputSurface;
+	private SurfaceTextureManager mStManager;
+	private MediaCodec mEncoder;	
+	
+	private static final String MIME_TYPE = "video/avc";    // H.264 Advanced Video Coding
+    private static final int FRAME_RATE = 30;               // 30fps
+    private static final int IFRAME_INTERVAL = 5;           // 5 seconds between I-frames
+	
+	private MediaCodec.BufferInfo mBufferInfo;
 	
 	public CameraPreview(Context context) {
 		super(context);
@@ -31,19 +46,44 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 		mHolder = getHolder();
 		mHolder.addCallback(this);
 		
-		MediaCodec mc;
+		
 		try {
+			// arbitrary but popular values
+	        int encWidth = 640;
+	        int encHeight = 480;
+	        int encBitRate = 6000000;      // Mbps
+	        Log.d(TAG, MIME_TYPE + " output " + encWidth + "x" + encHeight + " @" + encBitRate);
 			
-			mc = MediaCodec.createByCodecName(CODEC_NAME);
-			Surface surface = mc.createInputSurface();
-			((SurfaceView)this).addMediaCodecSurface(surface);
-			
+			mBufferInfo = new MediaCodec.BufferInfo();
+
+	        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, encWidth, encHeight);
+
+	        // Set some properties.  Failing to specify some of these can cause the MediaCodec
+	        // configure() call to throw an unhelpful exception.
+	        format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
+	                MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+	        format.setInteger(MediaFormat.KEY_BIT_RATE, encBitRate);
+	        format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
+	        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);
+	        
+	        if (VoicerHelper.VERBOSE) Log.d(TAG, "format: " + format);
+	        
+	        // Create a MediaCodec encoder, and configure it with our format.  Get a Surface
+	        // we can use for input and wrap it with a class that handles the EGL work.
+	        //
+	        // If you want to have two EGL contexts -- one for display, one for recording --
+	        // you will likely want to defer instantiation of CodecInputSurface until after the
+	        // "display" EGL context is created, then modify the eglCreateContext call to
+	        // take eglGetCurrentContext() as the share_context argument.
+	        mEncoder = MediaCodec.createEncoderByType(MIME_TYPE);
+	        mEncoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+	        mInputSurface = new CodecInputSurface(mEncoder.createInputSurface());
+	        mEncoder.start();			
 			
 		} catch (IOException e) {
 			Log.e("VOICER", "Erro ao definir codec video", e);
 		}
-		
-		
+				
 		mCamera = CameraService.getInstance().getFrontCamera(); 
 		
 		// deprecated setting, but required on Android versions prior to 3.0
@@ -51,119 +91,43 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 	}
 	
 	/**
-	 * 
-	 * @param wid
-	 * @param hei
-	 */
-	/*public void prepareMedia(int wid, int hei) {
-        myMediaRecorder =  new MediaRecorder();
-        mCamera.stopPreview();
-        mCamera.unlock();
-        
-        myMediaRecorder.setCamera(mCamera);
-        myMediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
-        myMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-	    
-        CamcorderProfile targetProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
-        targetProfile.videoFrameWidth = wid;
-        targetProfile.videoFrameHeight = hei;
-        targetProfile.videoFrameRate = 25;
-        targetProfile.videoBitRate = 512*1024;
-        targetProfile.videoCodec = MediaRecorder.VideoEncoder.H264;
-        targetProfile.audioCodec = MediaRecorder.AudioEncoder.AMR_NB;
-        targetProfile.fileFormat = MediaRecorder.OutputFormat.MPEG_4;
-        
-        myMediaRecorder.setProfile(targetProfile);
-    }*/
+     * Configures SurfaceTexture for camera preview.  Initializes mStManager, and sets the
+     * associated SurfaceTexture as the Camera's "preview texture".
+     * <p>
+     * Configure the EGL surface that will be used for output before calling here.
+     */
+    private void prepareSurfaceTexture() {
+        mStManager = new SurfaceTextureManager();
+        SurfaceTexture st = mStManager.getSurfaceTexture();
+        try {
+            mCamera.setPreviewTexture(st);
+        } catch (IOException ioe) {
+            throw new RuntimeException("setPreviewTexture failed", ioe);
+        }
+    }
+	
 	
 	/**
-	 * 
-	 * @return
-	 */
-	/*private boolean mediaRecorderStart() {
-        
-        myMediaRecorder.setPreviewDisplay(mHolder.getSurface());
-        
-        try {
-        	
-        	myMediaRecorder.prepare();
-        	
-	    } catch (IllegalStateException e) {
-	        releaseMediaRecorder();	
-	        Log.d("TEAONLY", "JAVA:  camera prepare illegal error");
-            return false;
-	    } catch (IOException e) {
-	        releaseMediaRecorder();	    
-	        Log.d("TEAONLY", "JAVA:  camera prepare io error");
-            return false;
-	    }
-	    
-        try {
-        	
-            myMediaRecorder.start();
-            
-        } catch( Exception e) {
-            releaseMediaRecorder();
-	        Log.d("TEAONLY", "JAVA:  camera start error");
-            return false;
+     * Releases encoder resources.
+     */
+    public void releaseEncoder() {
+        if (VoicerHelper.VERBOSE) Log.d(TAG, "releasing encoder objects");
+        if (mEncoder != null) {
+            mEncoder.stop();
+            mEncoder.release();
+            mEncoder = null;
         }
-
-        return true;
-    }*/
-
-	/**
-	 * 
-	 * @param targetFd
-	 * @return
-	 */
-    /*public boolean StartStreaming(FileDescriptor targetFd) {
-        myMediaRecorder.setOutputFile(targetFd);
-        myMediaRecorder.setMaxDuration(9600000); 	// Set max duration 4 hours
-        //myMediaRecorder.setMaxFileSize(1600000000); // Set max file size 16G
-        myMediaRecorder.setOnInfoListener(streamingEventHandler);
-        return mediaRecorderStart();
-    }*/
-
-    /**
-     * 
-     * @param targetFile
-     * @return
-     */
-    /*public boolean StartRecording(String targetFile) {
-        myMediaRecorder.setOutputFile(targetFile);
-        
-        return mediaRecorderStart();
-    }*/
-    
-    /**
-     * 
-     */
-    /*public void StopMedia() {
-        myMediaRecorder.stop();
-        releaseMediaRecorder();        
-    }*/
-
-    /**
-     * 
-     */
-    /*private void releaseMediaRecorder(){
-        if (myMediaRecorder != null) {
-        	myMediaRecorder.reset();   // clear recorder configuration
-        	myMediaRecorder.release(); // release the recorder object
-        	myMediaRecorder = null;
-            mCamera.lock();           // lock camera for later use
-            mCamera.startPreview();
+        if (mInputSurface != null) {
+            mInputSurface.release();
+            mInputSurface = null;
         }
-        myMediaRecorder = null;
+        /*if (mMuxer != null) {
+            mMuxer.stop();
+            mMuxer.release();
+            mMuxer = null;
+        }*/
     }
 
-     
-    private MediaRecorder.OnInfoListener streamingEventHandler = new MediaRecorder.OnInfoListener() {
-        @Override
-        public void onInfo(MediaRecorder mr, int what, int extra) {
-            Log.d("TEAONLY", "MediaRecorder event = " + what);    
-        }
-    };*/
 
 
 	/* (non-Javadoc)
@@ -189,7 +153,10 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         
         // start preview with new settings
         try {
-            mCamera.setPreviewDisplay(mHolder);
+        	
+        	mInputSurface.makeCurrent();
+        	prepareSurfaceTexture();
+        	
             mCamera.startPreview();
 
         } catch (Exception e){
