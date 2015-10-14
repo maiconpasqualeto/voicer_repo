@@ -3,6 +3,7 @@ package br.com.skylane.voicer;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.TextureView;
 import android.widget.FrameLayout;
 import br.com.skylane.voicer.camera.CameraPreview;
 import br.com.skylane.voicer.camera.CameraService;
@@ -23,9 +24,12 @@ public class HelloAndroidActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        cp = new CameraPreview(this);        
+        CameraPreview cp = new CameraPreview();
+        cp.startPreview();
+        
         FrameLayout previewLocal = (FrameLayout) findViewById(R.id.video_local_video);
-		previewLocal.addView(cp);
+        
+		previewLocal.addView(tv);
     }
     
     
@@ -40,11 +44,7 @@ public class HelloAndroidActivity extends Activity {
     @Override
     protected void onDestroy() {
     	super.onDestroy();
-    	
-    	if (cp != null)
-    		cp.releaseEncoder();
-    	
-    	CameraService.getInstance().releaseCamera();
+    	    	
     }
 
 }

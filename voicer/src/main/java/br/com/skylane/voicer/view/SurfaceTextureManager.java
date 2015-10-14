@@ -27,7 +27,7 @@ public class SurfaceTextureManager
 
     private Object mFrameSyncObject = new Object();     // guards mFrameAvailable
     private boolean mFrameAvailable;
-
+    
     /**
      * Creates instances of TextureRender and SurfaceTexture.
      */

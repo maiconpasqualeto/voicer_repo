@@ -10,5 +10,6 @@ package br.com.skylane.voicer;
 public class VoicerHelper {
 	
 	public static final boolean VERBOSE = true;
+	public static final String TAG = "VOICER";	
 
 }
