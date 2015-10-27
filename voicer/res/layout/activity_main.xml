@@ -47,11 +47,12 @@
             android:padding="4dp" 
             android:layout_height="94dp" 
             android:layout_width="94dp">
-	        	<FrameLayout 
-	        	    android:layout_gravity="center" 
-	        	    android:id="@+id/video_local_video" 
-	        	    android:layout_height="fill_parent" 
-	        	    android:layout_width="fill_parent"></FrameLayout>
+            
+            <android.opengl.GLSurfaceView
+	            android:id="@+id/cameraPreview_surfaceView"
+	            android:layout_width="match_parent"
+	            android:layout_height="match_parent"
+	            android:layout_gravity="center" />	        	
 	    </FrameLayout>
 
     </RelativeLayout>
