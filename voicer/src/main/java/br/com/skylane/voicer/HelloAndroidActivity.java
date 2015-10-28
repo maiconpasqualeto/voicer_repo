@@ -4,12 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 
+import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.app.Activity;
 import android.graphics.SurfaceTexture;
+import android.hardware.Camera;
 import android.opengl.EGL14;
-import android.opengl.EGLConfig;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
@@ -17,19 +18,34 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
-import android.widget.AdapterView.OnItemSelectedListener;
-import br.com.skylane.voicer.camera.CameraPreview;
 
+import com.android.grafika.CameraUtils;
+import com.android.grafika.TextureMovieEncoder;
 import com.android.grafika.gles.FullFrameRect;
 import com.android.grafika.gles.Texture2dProgram;
 
-
-public class HelloAndroidActivity 
-	extends Activity 
-	implements SurfaceTexture.OnFrameAvailableListener, OnItemSelectedListener {
+@SuppressWarnings("deprecation")
+public class HelloAndroidActivity extends Activity 
+	implements SurfaceTexture.OnFrameAvailableListener {
 	
-	private CameraPreview cp;
+	private Camera mCamera;
 	private GLSurfaceView mGLView;
+	private CameraHandler mCameraHandler;
+	private CameraSurfaceRenderer mRenderer;
+	
+	private int mCameraPreviewWidth, mCameraPreviewHeight;
+	
+	private boolean mRecordingEnabled;      // controls button state
+	
+	// Camera filters; must match up with cameraFilterNames in strings.xml
+    static final int FILTER_NONE = 0;
+    static final int FILTER_BLACK_WHITE = 1;
+    static final int FILTER_BLUR = 2;
+    static final int FILTER_SHARPEN = 3;
+    static final int FILTER_EDGE_DETECT = 4;
+    static final int FILTER_EMBOSS = 5;
+	
+	private static TextureMovieEncoder sVideoEncoder = new TextureMovieEncoder();
 	
     /**
      * Called when the activity is first created.
@@ -49,6 +65,15 @@ public class HelloAndroidActivity
         
 		previewLocal.addView(tv);*/
         
+        // Define a handler that receives camera-control messages from other threads.  All calls
+        // to Camera must be made on the same thread.  Note we create this before the renderer
+        // thread, so we know the fully-constructed object will be visible.
+        mCameraHandler = new CameraHandler(this);
+
+        mRecordingEnabled = sVideoEncoder.isRecording();
+        
+        File outputFile = new File("/storage/sdcard0", "camera-test.mp4");
+        
         mGLView = (GLSurfaceView) findViewById(R.id.cameraPreview_surfaceView);
         mGLView.setEGLContextClientVersion(2);     // select GLES 2.0
         mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder, outputFile);
@@ -56,7 +81,6 @@ public class HelloAndroidActivity
         mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         
     }
-    
     
 
     @Override
@@ -67,9 +91,45 @@ public class HelloAndroidActivity
     }
     
     @Override
+    protected void onResume() {
+        Log.d(VoicerHelper.TAG, "onResume -- acquiring camera");
+        super.onResume();
+        //updateControls();
+        openCamera(1280, 720);      // updates mCameraPreviewWidth/Height
+
+        // Set the preview aspect ratio.
+        /*AspectFrameLayout layout = (AspectFrameLayout) findViewById(R.id.cameraPreview_afl);
+        layout.setAspectRatio((double) mCameraPreviewWidth / mCameraPreviewHeight);*/
+
+        mGLView.onResume();
+        mGLView.queueEvent(new Runnable() {
+            @Override public void run() {
+                mRenderer.setCameraPreviewSize(mCameraPreviewWidth, mCameraPreviewHeight);
+            }
+        });
+        Log.d(VoicerHelper.TAG, "onResume complete: " + this);
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d(VoicerHelper.TAG, "onPause -- releasing camera");
+        super.onPause();
+        releaseCamera();
+        mGLView.queueEvent(new Runnable() {
+            @Override public void run() {
+                // Tell the renderer that it's about to be paused so it can clean up.
+                mRenderer.notifyPausing();
+            }
+        });
+        mGLView.onPause();
+        Log.d(VoicerHelper.TAG, "onPause complete");
+    }
+    
+    @Override
     protected void onDestroy() {
-    	super.onDestroy();
-    	    	
+        Log.d(VoicerHelper.TAG, "onDestroy");
+        super.onDestroy();
+        mCameraHandler.invalidateHandler();     // paranoia
     }
     
     @Override
@@ -91,6 +151,75 @@ public class HelloAndroidActivity
     }
     
     /**
+     * Opens a camera, and attempts to establish preview mode at the specified width and height.
+     * <p>
+     * Sets mCameraPreviewWidth and mCameraPreviewHeight to the actual width/height of the preview.
+     */
+    private void openCamera(int desiredWidth, int desiredHeight) {
+        if (mCamera != null) {
+            throw new RuntimeException("camera already initialized");
+        }
+
+        Camera.CameraInfo info = new Camera.CameraInfo();
+
+        // Try to find a front-facing camera (e.g. for videoconferencing).
+        int numCameras = Camera.getNumberOfCameras();
+        for (int i = 0; i < numCameras; i++) {
+            Camera.getCameraInfo(i, info);
+            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                mCamera = Camera.open(i);
+                break;
+            }
+        }
+        if (mCamera == null) {
+            Log.d(VoicerHelper.TAG, "No front-facing camera found; opening default");
+            mCamera = Camera.open();    // opens first back-facing camera
+        }
+        if (mCamera == null) {
+            throw new RuntimeException("Unable to open camera");
+        }
+
+        Camera.Parameters parms = mCamera.getParameters();
+        
+        CameraUtils.choosePreviewSize(parms, desiredWidth, desiredHeight);
+
+        // Give the camera a hint that we're recording video.  This can have a big
+        // impact on frame rate.
+        parms.setRecordingHint(true);        
+
+        // leave the frame rate set to default
+        mCamera.setParameters(parms);
+
+        int[] fpsRange = new int[2];
+        Camera.Size mCameraPreviewSize = parms.getPreviewSize();
+        parms.getPreviewFpsRange(fpsRange);
+        String previewFacts = mCameraPreviewSize.width + "x" + mCameraPreviewSize.height;
+        if (fpsRange[0] == fpsRange[1]) {
+            previewFacts += " @" + (fpsRange[0] / 1000.0) + "fps";
+        } else {
+            previewFacts += " @[" + (fpsRange[0] / 1000.0) +
+                    " - " + (fpsRange[1] / 1000.0) + "] fps";
+        }
+        
+        mCamera.setDisplayOrientation(90);
+        
+        mCameraPreviewWidth = mCameraPreviewSize.width;
+        mCameraPreviewHeight = mCameraPreviewSize.height;
+    }
+    
+    /**
+     * Stops camera preview, and releases the camera to the system.
+     */
+    private void releaseCamera() {
+        if (mCamera != null) {
+            mCamera.stopPreview();
+            mCamera.release();
+            mCamera = null;
+            Log.d(VoicerHelper.TAG, "releaseCamera -- done");
+        }
+    }
+    
+    /**
      * Connects the SurfaceTexture to the Camera preview output, and starts the preview.
      */
     private void handleSetSurfaceTexture(SurfaceTexture st) {
@@ -103,49 +232,49 @@ public class HelloAndroidActivity
         mCamera.startPreview();
     }
 
-}
-
-/**
- * 
- * @author maicon
- *
- */
-static class CameraHandler extends Handler {
-    public static final int MSG_SET_SURFACE_TEXTURE = 0;
-
-    // Weak reference to the Activity; only access this from the UI thread.
-    private WeakReference<HelloAndroidActivity> mWeakActivity;
-
-    public CameraHandler(HelloAndroidActivity activity) {
-        mWeakActivity = new WeakReference<HelloAndroidActivity>(activity);
-    }
-
     /**
-     * Drop the reference to the activity.  Useful as a paranoid measure to ensure that
-     * attempts to access a stale Activity through a handler are caught.
+     * 
+     * @author maicon
+     *
      */
-    public void invalidateHandler() {
-        mWeakActivity.clear();
-    }
+    static class CameraHandler extends Handler {
+        public static final int MSG_SET_SURFACE_TEXTURE = 0;
 
-    @Override  // runs on UI thread
-    public void handleMessage(Message inputMessage) {
-        int what = inputMessage.what;
-        Log.d(VoicerHelper.TAG, "CameraHandler [" + this + "]: what=" + what);
+        // Weak reference to the Activity; only access this from the UI thread.
+        private WeakReference<HelloAndroidActivity> mWeakActivity;
 
-        HelloAndroidActivity activity = mWeakActivity.get();
-        if (activity == null) {
-            Log.w(VoicerHelper.TAG, "CameraHandler.handleMessage: activity is null");
-            return;
+        public CameraHandler(HelloAndroidActivity activity) {
+            mWeakActivity = new WeakReference<HelloAndroidActivity>(activity);
         }
 
-        switch (what) {
-            case MSG_SET_SURFACE_TEXTURE:
-                activity.handleSetSurfaceTexture((SurfaceTexture) inputMessage.obj);
-                break;
-            default:
-                throw new RuntimeException("unknown msg " + what);
+        /**
+         * Drop the reference to the activity.  Useful as a paranoid measure to ensure that
+         * attempts to access a stale Activity through a handler are caught.
+         */
+        public void invalidateHandler() {
+            mWeakActivity.clear();
         }
+
+        @Override  // runs on UI thread
+        public void handleMessage(Message inputMessage) {
+            int what = inputMessage.what;
+            Log.d(VoicerHelper.TAG, "CameraHandler [" + this + "]: what=" + what);
+
+            HelloAndroidActivity activity = mWeakActivity.get();
+            if (activity == null) {
+                Log.w(VoicerHelper.TAG, "CameraHandler.handleMessage: activity is null");
+                return;
+            }
+
+            switch (what) {
+                case MSG_SET_SURFACE_TEXTURE:
+                    activity.handleSetSurfaceTexture((SurfaceTexture) inputMessage.obj);
+                    break;
+                default:
+                    throw new RuntimeException("unknown msg " + what);
+            }
+        }
+        
     }
     
 }
@@ -194,7 +323,7 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
      * @param movieEncoder video encoder object
      * @param outputFile output file for encoded video; forwarded to movieEncoder
      */
-    public CameraSurfaceRenderer(CameraCaptureActivity.CameraHandler cameraHandler,
+    public CameraSurfaceRenderer(HelloAndroidActivity.CameraHandler cameraHandler,
             TextureMovieEncoder movieEncoder, File outputFile) {
         mCameraHandler = cameraHandler;
         mVideoEncoder = movieEncoder;
@@ -211,7 +340,7 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
 
         // We could preserve the old filter mode, but currently not bothering.
         mCurrentFilter = -1;
-        mNewFilter = CameraCaptureActivity.FILTER_NONE;
+        mNewFilter = HelloAndroidActivity.FILTER_NONE;
     }
 
     /**
@@ -221,7 +350,7 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
      */
     public void notifyPausing() {
         if (mSurfaceTexture != null) {
-            Log.d(TAG, "renderer pausing -- releasing SurfaceTexture");
+            Log.d(VoicerHelper.TAG, "renderer pausing -- releasing SurfaceTexture");
             mSurfaceTexture.release();
             mSurfaceTexture = null;
         }
@@ -236,7 +365,7 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
      * Notifies the renderer that we want to stop or start recording.
      */
     public void changeRecordingState(boolean isRecording) {
-        Log.d(TAG, "changeRecordingState: was " + mRecordingEnabled + " now " + isRecording);
+        Log.d(VoicerHelper.TAG, "changeRecordingState: was " + mRecordingEnabled + " now " + isRecording);
         mRecordingEnabled = isRecording;
     }
 
@@ -255,39 +384,39 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
         float[] kernel = null;
         float colorAdj = 0.0f;
 
-        Log.d(TAG, "Updating filter to " + mNewFilter);
+        Log.d(VoicerHelper.TAG, "Updating filter to " + mNewFilter);
         switch (mNewFilter) {
-            case CameraCaptureActivity.FILTER_NONE:
+            case HelloAndroidActivity.FILTER_NONE:
                 programType = Texture2dProgram.ProgramType.TEXTURE_EXT;
                 break;
-            case CameraCaptureActivity.FILTER_BLACK_WHITE:
+            case HelloAndroidActivity.FILTER_BLACK_WHITE:
                 // (In a previous version the TEXTURE_EXT_BW variant was enabled by a flag called
                 // ROSE_COLORED_GLASSES, because the shader set the red channel to the B&W color
                 // and green/blue to zero.)
                 programType = Texture2dProgram.ProgramType.TEXTURE_EXT_BW;
                 break;
-            case CameraCaptureActivity.FILTER_BLUR:
+            case HelloAndroidActivity.FILTER_BLUR:
                 programType = Texture2dProgram.ProgramType.TEXTURE_EXT_FILT;
                 kernel = new float[] {
                         1f/16f, 2f/16f, 1f/16f,
                         2f/16f, 4f/16f, 2f/16f,
                         1f/16f, 2f/16f, 1f/16f };
                 break;
-            case CameraCaptureActivity.FILTER_SHARPEN:
+            case HelloAndroidActivity.FILTER_SHARPEN:
                 programType = Texture2dProgram.ProgramType.TEXTURE_EXT_FILT;
                 kernel = new float[] {
                         0f, -1f, 0f,
                         -1f, 5f, -1f,
                         0f, -1f, 0f };
                 break;
-            case CameraCaptureActivity.FILTER_EDGE_DETECT:
+            case HelloAndroidActivity.FILTER_EDGE_DETECT:
                 programType = Texture2dProgram.ProgramType.TEXTURE_EXT_FILT;
                 kernel = new float[] {
                         -1f, -1f, -1f,
                         -1f, 8f, -1f,
                         -1f, -1f, -1f };
                 break;
-            case CameraCaptureActivity.FILTER_EMBOSS:
+            case HelloAndroidActivity.FILTER_EMBOSS:
                 programType = Texture2dProgram.ProgramType.TEXTURE_EXT_FILT;
                 kernel = new float[] {
                         2f, 0f, 0f,
@@ -323,15 +452,15 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
      * so we at least know that they won't execute concurrently.)
      */
     public void setCameraPreviewSize(int width, int height) {
-        Log.d(TAG, "setCameraPreviewSize");
+        Log.d(VoicerHelper.TAG, "setCameraPreviewSize");
         mIncomingWidth = width;
         mIncomingHeight = height;
         mIncomingSizeUpdated = true;
     }
-
+    
     @Override
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
-        Log.d(TAG, "onSurfaceCreated");
+        Log.d(VoicerHelper.TAG, "onSurfaceCreated");
 
         // We're starting up or coming back.  Either way we've got a new EGLContext that will
         // need to be shared with the video encoder, so figure out if a recording is already
@@ -357,17 +486,17 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
 
         // Tell the UI thread to enable the camera preview.
         mCameraHandler.sendMessage(mCameraHandler.obtainMessage(
-                CameraCaptureActivity.CameraHandler.MSG_SET_SURFACE_TEXTURE, mSurfaceTexture));
+        		HelloAndroidActivity.CameraHandler.MSG_SET_SURFACE_TEXTURE, mSurfaceTexture));
     }
 
     @Override
     public void onSurfaceChanged(GL10 unused, int width, int height) {
-        Log.d(TAG, "onSurfaceChanged " + width + "x" + height);
+        Log.d(VoicerHelper.TAG, "onSurfaceChanged " + width + "x" + height);
     }
 
     @Override
     public void onDrawFrame(GL10 unused) {
-        if (VERBOSE) Log.d(TAG, "onDrawFrame tex=" + mTextureId);
+        if (VERBOSE) Log.d(VoicerHelper.TAG, "onDrawFrame tex=" + mTextureId);
         boolean showBox = false;
 
         // Latch the latest frame.  If there isn't anything new, we'll just re-use whatever
@@ -380,14 +509,14 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
         if (mRecordingEnabled) {
             switch (mRecordingStatus) {
                 case RECORDING_OFF:
-                    Log.d(TAG, "START recording");
+                    Log.d(VoicerHelper.TAG, "START recording");
                     // start recording
                     mVideoEncoder.startRecording(new TextureMovieEncoder.EncoderConfig(
                             mOutputFile, 640, 480, 1000000, EGL14.eglGetCurrentContext()));
                     mRecordingStatus = RECORDING_ON;
                     break;
                 case RECORDING_RESUMED:
-                    Log.d(TAG, "RESUME recording");
+                    Log.d(VoicerHelper.TAG, "RESUME recording");
                     mVideoEncoder.updateSharedContext(EGL14.eglGetCurrentContext());
                     mRecordingStatus = RECORDING_ON;
                     break;
@@ -402,7 +531,7 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
                 case RECORDING_ON:
                 case RECORDING_RESUMED:
                     // stop recording
-                    Log.d(TAG, "STOP recording");
+                    Log.d(VoicerHelper.TAG, "STOP recording");
                     mVideoEncoder.stopRecording();
                     mRecordingStatus = RECORDING_OFF;
                     break;
@@ -429,7 +558,7 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
             // Texture size isn't set yet.  This is only used for the filters, but to be
             // safe we can just skip drawing while we wait for the various races to resolve.
             // (This seems to happen if you toggle the screen off/on with power button.)
-            Log.i(TAG, "Drawing before incoming texture size set; skipping");
+            Log.i(VoicerHelper.TAG, "Drawing before incoming texture size set; skipping");
             return;
         }
         // Update the filter, if necessary.
