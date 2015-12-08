@@ -14,6 +14,7 @@ import android.opengl.EGL14;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -72,13 +73,13 @@ public class HelloAndroidActivity extends Activity
 
         mRecordingEnabled = sVideoEncoder.isRecording();
         
-        File outputFile = new File("/storage/sdcard0", "camera-test.mp4");
-        
+        File outputFile = new File(Environment.getExternalStorageDirectory(), "camera-test.mp4");
         mGLView = (GLSurfaceView) findViewById(R.id.cameraPreview_surfaceView);
         mGLView.setEGLContextClientVersion(2);     // select GLES 2.0
         mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder, outputFile);
         mGLView.setRenderer(mRenderer);
         mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        
         
     }
     
@@ -487,6 +488,11 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
         // Tell the UI thread to enable the camera preview.
         mCameraHandler.sendMessage(mCameraHandler.obtainMessage(
         		HelloAndroidActivity.CameraHandler.MSG_SET_SURFACE_TEXTURE, mSurfaceTexture));
+        
+        
+        // TODO [Maicon] startar a gravação ao iniciar a aplicação (teste)
+        if (!mRecordingEnabled)
+        	mRecordingEnabled = true;
     }
 
     @Override
@@ -575,7 +581,7 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
         mFullScreen.drawFrame(mTextureId, mSTMatrix);
 
         // Draw a flashing box if we're recording.  This only appears on screen.
-        showBox = (mRecordingStatus == RECORDING_ON);
+        showBox = false;//(mRecordingStatus == RECORDING_ON);
         if (showBox && (++mFrameCount & 0x04) == 0) {
             drawBox();
         }
