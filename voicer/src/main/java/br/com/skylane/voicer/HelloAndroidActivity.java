@@ -36,7 +36,7 @@ public class HelloAndroidActivity extends Activity
 	
 	private int mCameraPreviewWidth, mCameraPreviewHeight;
 	
-	private boolean mRecordingEnabled;      // controls button state
+	//[Maicon] private boolean mRecordingEnabled;      // controls button state
 	
 	// Camera filters; must match up with cameraFilterNames in strings.xml
     static final int FILTER_NONE = 0;
@@ -71,12 +71,13 @@ public class HelloAndroidActivity extends Activity
         // thread, so we know the fully-constructed object will be visible.
         mCameraHandler = new CameraHandler(this);
 
-        mRecordingEnabled = sVideoEncoder.isRecording();
+        //[Maicon] mRecordingEnabled = sVideoEncoder.isRecording();
         
-        File outputFile = new File(Environment.getExternalStorageDirectory(), "camera-test.mp4");
+        //[Maicon] File outputFile = new File(Environment.getExternalStorageDirectory(), "camera-test.mp4");
         mGLView = (GLSurfaceView) findViewById(R.id.cameraPreview_surfaceView);
         mGLView.setEGLContextClientVersion(2);     // select GLES 2.0
-        mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder, outputFile);
+        //[Maicon] mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder, outputFile);
+        mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder);
         mGLView.setRenderer(mRenderer);
         mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         
@@ -313,8 +314,8 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
     private int mIncomingWidth;
     private int mIncomingHeight;
 
-    private int mCurrentFilter;
-    private int mNewFilter;
+    //[Maicon] private int mCurrentFilter;
+    //[Maicon] private int mNewFilter;
 
 
     /**
@@ -325,10 +326,11 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
      * @param outputFile output file for encoded video; forwarded to movieEncoder
      */
     public CameraSurfaceRenderer(HelloAndroidActivity.CameraHandler cameraHandler,
-            TextureMovieEncoder movieEncoder, File outputFile) {
+    		TextureMovieEncoder movieEncoder) {
+    	//[Maicon] TextureMovieEncoder movieEncoder, File outputFile) {
         mCameraHandler = cameraHandler;
         mVideoEncoder = movieEncoder;
-        mOutputFile = outputFile;
+        //[Maicon] mOutputFile = outputFile;
 
         mTextureId = -1;
 
@@ -340,8 +342,8 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
         mIncomingWidth = mIncomingHeight = -1;
 
         // We could preserve the old filter mode, but currently not bothering.
-        mCurrentFilter = -1;
-        mNewFilter = HelloAndroidActivity.FILTER_NONE;
+        //[Maicon] mCurrentFilter = -1;
+        //[Maicon] mNewFilter = HelloAndroidActivity.FILTER_NONE;
     }
 
     /**
@@ -372,15 +374,17 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
 
     /**
      * Changes the filter that we're applying to the camera preview.
-     */
-    public void changeFilterMode(int filter) {
+     */     
+    //[Maicon]
+    /*public void changeFilterMode(int filter) {
         mNewFilter = filter;
-    }
+    }*/
 
     /**
      * Updates the filter program.
      */
-    public void updateFilter() {
+    //[Maicon]
+    /*public void updateFilter() {
         Texture2dProgram.ProgramType programType;
         float[] kernel = null;
         float colorAdj = 0.0f;
@@ -443,7 +447,7 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
         }
 
         mCurrentFilter = mNewFilter;
-    }
+    }*/
 
     /**
      * Records the size of the incoming camera preview frames.
@@ -491,8 +495,8 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
         
         
         // TODO [Maicon] startar a gravação ao iniciar a aplicação (teste)
-        if (!mRecordingEnabled)
-        	mRecordingEnabled = true;
+        /*if (!mRecordingEnabled)
+        	mRecordingEnabled = true;*/
     }
 
     @Override
@@ -568,9 +572,10 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
             return;
         }
         // Update the filter, if necessary.
-        if (mCurrentFilter != mNewFilter) {
+        //[Maicon]
+        /*if (mCurrentFilter != mNewFilter) {
             updateFilter();
-        }
+        }*/
         if (mIncomingSizeUpdated) {
             mFullScreen.getProgram().setTexSize(mIncomingWidth, mIncomingHeight);
             mIncomingSizeUpdated = false;
@@ -581,10 +586,11 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
         mFullScreen.drawFrame(mTextureId, mSTMatrix);
 
         // Draw a flashing box if we're recording.  This only appears on screen.
-        showBox = false;//(mRecordingStatus == RECORDING_ON);
+        //[Maicon]
+        /*showBox = false;//(mRecordingStatus == RECORDING_ON);
         if (showBox && (++mFrameCount & 0x04) == 0) {
             drawBox();
-        }
+        }*/
     }
 
     /**
