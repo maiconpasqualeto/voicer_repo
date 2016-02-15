@@ -88,7 +88,7 @@ public class VideoEncoderCore {
         // the raw H.264 elementary stream we get from MediaCodec into a .mp4 file.
         mMuxer = new MediaMuxer(outputFile.toString(),
                 MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-
+ 
         mTrackIndex = -1;
         mMuxerStarted = false;
     }
