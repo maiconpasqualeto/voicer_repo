@@ -115,7 +115,7 @@ public class TextureMovieEncoder implements Runnable {
         @Override
         public String toString() {
             return "EncoderConfig: " + mWidth + "x" + mHeight + " @" + mBitRate +
-                    " to '" + mOutputFile.toString() + "' ctxt=" + mEglContext;
+                    /*" to '" + mOutputFile.toString() +*/ "	' ctxt=" + mEglContext;
         }
     }
 

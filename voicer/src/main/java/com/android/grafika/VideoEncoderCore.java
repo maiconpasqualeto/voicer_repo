@@ -40,7 +40,7 @@ import java.nio.ByteBuffer;
  */
 public class VideoEncoderCore {
     private static final String TAG = VoicerHelper.TAG;
-    private static final boolean VERBOSE = false;
+    private static final boolean VERBOSE = true;
 
     // TODO: these ought to be configurable as well
     private static final String MIME_TYPE = "video/avc";    // H.264 Advanced Video Coding
@@ -86,8 +86,8 @@ public class VideoEncoderCore {
         //
         // We're not actually interested in multiplexing audio.  We just want to convert
         // the raw H.264 elementary stream we get from MediaCodec into a .mp4 file.
-        mMuxer = new MediaMuxer(outputFile.toString(),
-                MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+        /*mMuxer = new MediaMuxer(outputFile.toString(),
+                MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);*/
  
         mTrackIndex = -1;
         mMuxerStarted = false;
@@ -160,8 +160,8 @@ public class VideoEncoderCore {
                 Log.d(TAG, "encoder output format changed: " + newFormat);
 
                 // now that we have the Magic Goodies, start the muxer
-                mTrackIndex = mMuxer.addTrack(newFormat);
-                mMuxer.start();
+                /*[Maicon] mTrackIndex = mMuxer.addTrack(newFormat);
+                mMuxer.start();*/
                 mMuxerStarted = true;
             } else if (encoderStatus < 0) {
                 Log.w(TAG, "unexpected result from encoder.dequeueOutputBuffer: " +
@@ -189,8 +189,8 @@ public class VideoEncoderCore {
                     // adjust the ByteBuffer values to match BufferInfo (not needed?)
                     encodedData.position(mBufferInfo.offset);
                     encodedData.limit(mBufferInfo.offset + mBufferInfo.size);
-
-                    mMuxer.writeSampleData(mTrackIndex, encodedData, mBufferInfo);
+                    
+                    //mMuxer.writeSampleData(mTrackIndex, encodedData, mBufferInfo);
                     if (VERBOSE) {
                         Log.d(TAG, "sent " + mBufferInfo.size + " bytes to muxer, ts=" +
                                 mBufferInfo.presentationTimeUs);

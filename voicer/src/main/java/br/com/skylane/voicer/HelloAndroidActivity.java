@@ -80,8 +80,7 @@ public class HelloAndroidActivity extends Activity
         mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder);
         mGLView.setRenderer(mRenderer);
         mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-        
-        
+                
     }
     
 
@@ -495,8 +494,8 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
         
         
         // TODO [Maicon] startar a gravação ao iniciar a aplicação (teste)
-        /*if (!mRecordingEnabled)
-        	mRecordingEnabled = true;*/
+        if (!mRecordingEnabled)
+        	mRecordingEnabled = true;
     }
 
     @Override
