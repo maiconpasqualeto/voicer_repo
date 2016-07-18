@@ -6,6 +6,8 @@ package br.com.skylane.voicer.udp;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
@@ -18,9 +20,14 @@ import br.com.skylane.voicer.VoicerHelper;
 public class UDPServer {
 	private AsyncTask<Void, Void, Void> async;
 	private boolean Server_aktiv = true;
+	private Context ctx;
 	
 	private static final int SERVER_PORT = 1234;
 
+	public UDPServer(Context ctx) {
+		this.ctx = ctx;
+	}
+	
 	/**
 	 * 
 	 */
@@ -37,13 +44,13 @@ public class UDPServer {
 					
 					while (Server_aktiv) {
 						ds.receive(dp);
-						Log.d(VoicerHelper.TAG, new String(lMsg, 0, dp.getLength()));
+						//Log.d("VOICER", new String(lMsg, 0, dp.getLength()));
 						
-						/*Intent i = new Intent();
-						i.setAction(Main.MESSAGE_RECEIVED);
-						i.putExtra(Main.MESSAGE_STRING,
+						Intent i = new Intent();
+						i.setAction("br.com.skylane.voicer.MESSAGE_RECEIVED");
+						i.putExtra("pct",
 								new String(lMsg, 0, dp.getLength()));
-						Main.MainContext.getApplicationContext().sendBroadcast(i);*/
+						ctx.sendBroadcast(i);
 						
 					}
 				} catch (Exception e) {
