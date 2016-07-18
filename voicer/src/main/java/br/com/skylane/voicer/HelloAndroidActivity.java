@@ -3,6 +3,10 @@ package br.com.skylane.voicer;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -14,11 +18,11 @@ import android.opengl.EGL14;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
+import br.com.skylane.voicer.udp.UDPServer;
 
 import com.android.grafika.CameraUtils;
 import com.android.grafika.TextureMovieEncoder;
@@ -66,6 +70,11 @@ public class HelloAndroidActivity extends Activity
         
 		previewLocal.addView(tv);*/
         
+        UDPServer s = new UDPServer();
+        s.runUdpServer();
+        
+        Log.d(VoicerHelper.TAG, getIpAddress());
+        
         // Define a handler that receives camera-control messages from other threads.  All calls
         // to Camera must be made on the same thread.  Note we create this before the renderer
         // thread, so we know the fully-constructed object will be visible.
@@ -80,7 +89,40 @@ public class HelloAndroidActivity extends Activity
         mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder);
         mGLView.setRenderer(mRenderer);
         mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        
+        
                 
+    }
+    
+    private String getIpAddress() {
+        String ip = "";
+        try {
+            Enumeration<NetworkInterface> enumNetworkInterfaces = NetworkInterface
+                    .getNetworkInterfaces();
+            while (enumNetworkInterfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = enumNetworkInterfaces
+                        .nextElement();
+                Enumeration<InetAddress> enumInetAddress = networkInterface
+                        .getInetAddresses();
+                while (enumInetAddress.hasMoreElements()) {
+                    InetAddress inetAddress = enumInetAddress.nextElement();
+
+                    if (inetAddress.isSiteLocalAddress()) {
+                        ip += "SiteLocalAddress: "
+                                + inetAddress.getHostAddress() + "\n";
+                    }
+
+                }
+
+            }
+
+        } catch (SocketException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            ip += "Something Wrong! " + e.toString() + "\n";
+        }
+
+        return ip;
     }
     
 
