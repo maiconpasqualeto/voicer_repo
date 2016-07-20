@@ -22,10 +22,14 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.util.Log;
 import android.view.Surface;
+import br.com.skylane.voicer.Voicer;
 import br.com.skylane.voicer.VoicerHelper;
+import br.com.skylane.voicer.udp.UDPControl;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
 /**
@@ -53,6 +57,8 @@ public class VideoEncoderCore {
     private MediaCodec.BufferInfo mBufferInfo;
     private int mTrackIndex;
     private boolean mMuxerStarted;
+    
+    private UDPControl control; 
 
 
     /**
@@ -60,6 +66,22 @@ public class VideoEncoderCore {
      */
     public VideoEncoderCore(int width, int height, int bitRate, File outputFile)
             throws IOException {
+    	
+    	InetAddress ip = null;
+		try {
+			//ip = InetAddress.getByName("192.168.25.131");
+			ip = InetAddress.getByName("192.168.25.33");
+		} catch (UnknownHostException e) {
+			Log.e(VoicerHelper.TAG, "Erro ao pegar o ip", e);
+		}
+		
+		control = new UDPControl(Voicer.getAppContext(), ip);   	
+    	
+    	
+    	
+    	
+    	
+    	
         mBufferInfo = new MediaCodec.BufferInfo();
 
         MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, width, height);
@@ -192,6 +214,11 @@ public class VideoEncoderCore {
                     
                     encodedData.remaining();
                     //mMuxer.writeSampleData(mTrackIndex, encodedData, mBufferInfo);
+                    byte[] pct = new byte[encodedData.remaining()];
+                    encodedData.get(pct, encodedData.position(), pct.length);
+                    
+                    control.send(pct);
+                    
                     if (VERBOSE) {
                         Log.d(TAG, "sent " + mBufferInfo.size + " bytes to muxer, ts=" +
                                 mBufferInfo.presentationTimeUs);

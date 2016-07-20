@@ -6,6 +6,7 @@ package br.com.skylane.voicer;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Enumeration;
 
 import android.app.Activity;
@@ -18,6 +19,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import br.com.skylane.voicer.udp.UDPClient;
+import br.com.skylane.voicer.udp.UDPControl;
 import br.com.skylane.voicer.udp.UDPServer;
 
 /**
@@ -27,14 +29,22 @@ import br.com.skylane.voicer.udp.UDPServer;
 public class TestActivity extends Activity {
 	
 	private BroadcastReceiver rec;
+	private UDPControl control; 
 
 	
 	protected void onCreate(android.os.Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.udp_test);
 		
-		UDPServer s = new UDPServer(this);
-        s.runUdpServer();
+		
+		InetAddress ip = null;
+		try {
+			//ip = InetAddress.getByName("192.168.25.131");
+			ip = InetAddress.getByName("192.168.25.33");
+		} catch (UnknownHostException e) {
+			Log.e(VoicerHelper.TAG, "Erro ao pegar o ip", e);
+		}
+		control = new UDPControl(this, ip);
         
         
         final EditText txtReceive = (EditText) findViewById(R.id.txtReceive);
@@ -48,9 +58,10 @@ public class TestActivity extends Activity {
         btnSend.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				UDPClient c = new UDPClient();
-				c.Message = txtSend.getText().toString();
-				c.NachrichtSenden();
+				
+				String msg = txtSend.getText().toString();
+				control.send(msg.getBytes());
+				
 			}
         });
         
@@ -101,6 +112,6 @@ public class TestActivity extends Activity {
 	protected void onDestroy() {
 		super.onDestroy();
 		unregisterReceiver(rec);
-		
+		control.close();
 	}
 }
