@@ -16,6 +16,11 @@
 
 package com.android.grafika;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.net.InetAddress;
+
 import android.graphics.SurfaceTexture;
 import android.opengl.EGLContext;
 import android.opengl.GLES20;
@@ -24,15 +29,12 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import br.com.skylane.voicer.VoicerHelper;
+import br.com.skylane.voicer.udp.UDPControl;
 
 import com.android.grafika.gles.EglCore;
 import com.android.grafika.gles.FullFrameRect;
 import com.android.grafika.gles.Texture2dProgram;
 import com.android.grafika.gles.WindowSurface;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
 
 /**
  * Encode a movie from frames rendered from an external texture image.
@@ -102,14 +104,17 @@ public class TextureMovieEncoder implements Runnable {
         final int mHeight;
         final int mBitRate;
         final EGLContext mEglContext;
+        final UDPControl control;
+        
 
         public EncoderConfig(File outputFile, int width, int height, int bitRate,
-                EGLContext sharedEglContext) {
+                EGLContext sharedEglContext, UDPControl control) {
             mOutputFile = outputFile;
             mWidth = width;
             mHeight = height;
             mBitRate = bitRate;
             mEglContext = sharedEglContext;
+            this.control = control;
         }
 
         @Override
@@ -311,7 +316,7 @@ public class TextureMovieEncoder implements Runnable {
         Log.d(TAG, "handleStartRecording " + config);
         mFrameNum = 0;
         prepareEncoder(config.mEglContext, config.mWidth, config.mHeight, config.mBitRate,
-                config.mOutputFile);
+                config.mOutputFile,config.control);
     }
 
     /**
@@ -378,9 +383,9 @@ public class TextureMovieEncoder implements Runnable {
     }
 
     private void prepareEncoder(EGLContext sharedContext, int width, int height, int bitRate,
-            File outputFile) {
+            File outputFile, UDPControl control) {
         try {
-            mVideoEncoder = new VideoEncoderCore(width, height, bitRate, outputFile);
+            mVideoEncoder = new VideoEncoderCore(width, height, bitRate, outputFile, control);
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }

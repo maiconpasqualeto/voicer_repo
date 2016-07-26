@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Enumeration;
+import java.net.UnknownHostException;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -22,7 +20,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
-import br.com.skylane.voicer.udp.UDPServer;
+import br.com.skylane.voicer.udp.UDPControl;
 
 import com.android.grafika.CameraUtils;
 import com.android.grafika.TextureMovieEncoder;
@@ -51,6 +49,7 @@ public class HelloAndroidActivity extends Activity
     static final int FILTER_EMBOSS = 5;
 	
 	private static TextureMovieEncoder sVideoEncoder = new TextureMovieEncoder();
+	
 	
     /**
      * Called when the activity is first created.
@@ -82,11 +81,22 @@ public class HelloAndroidActivity extends Activity
         mGLView = (GLSurfaceView) findViewById(R.id.cameraPreview_surfaceView);
         mGLView.setEGLContextClientVersion(2);     // select GLES 2.0
         //[Maicon] mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder, outputFile);
-        mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder);
-        mGLView.setRenderer(mRenderer);
-        mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         
+        try {
+	        
+        	InetAddress ipSource = InetAddress.getByName("127.0.0.1");
+	        //InetAddress ipTarget = InetAddress.getByName("192.168.25.131");
+	        InetAddress ipTarget = InetAddress.getByName("192.168.25.33");
+	        
+	        UDPControl mControl = new UDPControl(this, ipSource, ipTarget);
+	                
+	        mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder, mControl);
+	        mGLView.setRenderer(mRenderer);
+	        mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         
+        } catch (UnknownHostException e) {
+        	Log.e(VoicerHelper.TAG, "Erro no nome do host", e);
+        }
                 
     }
     
@@ -318,6 +328,8 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
     private boolean mIncomingSizeUpdated;
     private int mIncomingWidth;
     private int mIncomingHeight;
+    
+    private UDPControl mControl;
 
     //[Maicon] private int mCurrentFilter;
     //[Maicon] private int mNewFilter;
@@ -328,10 +340,11 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
      * <p>
      * @param cameraHandler Handler for communicating with UI thread
      * @param movieEncoder video encoder object
+     * @param mControl 
      * @param outputFile output file for encoded video; forwarded to movieEncoder
      */
     public CameraSurfaceRenderer(HelloAndroidActivity.CameraHandler cameraHandler,
-    		TextureMovieEncoder movieEncoder) {
+    		TextureMovieEncoder movieEncoder, UDPControl mControl) {
     	//[Maicon] TextureMovieEncoder movieEncoder, File outputFile) {
         mCameraHandler = cameraHandler;
         mVideoEncoder = movieEncoder;
@@ -345,6 +358,8 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
 
         mIncomingSizeUpdated = false;
         mIncomingWidth = mIncomingHeight = -1;
+        
+        this.mControl = mControl;
 
         // We could preserve the old filter mode, but currently not bothering.
         //[Maicon] mCurrentFilter = -1;
@@ -527,7 +542,7 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
                     Log.d(VoicerHelper.TAG, "START recording");
                     // start recording
                     mVideoEncoder.startRecording(new TextureMovieEncoder.EncoderConfig(
-                            mOutputFile, 640, 480, 1000000, EGL14.eglGetCurrentContext()));
+                            mOutputFile, 640, 480, 1000000, EGL14.eglGetCurrentContext(), mControl));
                     mRecordingStatus = RECORDING_ON;
                     break;
                 case RECORDING_RESUMED:

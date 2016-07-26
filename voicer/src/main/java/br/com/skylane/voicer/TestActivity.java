@@ -18,9 +18,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import br.com.skylane.voicer.udp.UDPClient;
 import br.com.skylane.voicer.udp.UDPControl;
-import br.com.skylane.voicer.udp.UDPServer;
+import br.com.skylane.voicer.udp.UdpPacket;
 
 /**
  * @author maicon
@@ -37,14 +36,16 @@ public class TestActivity extends Activity {
 		setContentView(R.layout.udp_test);
 		
 		
-		InetAddress ip = null;
+		InetAddress ipTarget = null;
+		InetAddress ipSource = null;
 		try {
 			//ip = InetAddress.getByName("192.168.25.131");
-			ip = InetAddress.getByName("192.168.25.33");
+			ipSource = InetAddress.getByName("127.0.0.1");
+			ipTarget = InetAddress.getByName("192.168.25.33");
 		} catch (UnknownHostException e) {
 			Log.e(VoicerHelper.TAG, "Erro ao pegar o ip", e);
 		}
-		control = new UDPControl(this, ip);
+		control = new UDPControl(this, ipSource, ipTarget);
         
         
         final EditText txtReceive = (EditText) findViewById(R.id.txtReceive);
@@ -60,7 +61,8 @@ public class TestActivity extends Activity {
 			public void onClick(View v) {
 				
 				String msg = txtSend.getText().toString();
-				control.send(msg.getBytes());
+				UdpPacket pct = new UdpPacket(UdpPacket.AUDIO, msg.getBytes());
+				control.send(pct);
 				
 			}
         });

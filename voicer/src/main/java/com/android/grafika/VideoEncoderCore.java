@@ -16,6 +16,10 @@
 
 package com.android.grafika;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
@@ -25,12 +29,7 @@ import android.view.Surface;
 import br.com.skylane.voicer.Voicer;
 import br.com.skylane.voicer.VoicerHelper;
 import br.com.skylane.voicer.udp.UDPControl;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
+import br.com.skylane.voicer.udp.UdpPacket;
 
 /**
  * This class wraps up the core components used for surface-input video encoding.
@@ -64,22 +63,10 @@ public class VideoEncoderCore {
     /**
      * Configures encoder and muxer state, and prepares the input Surface.
      */
-    public VideoEncoderCore(int width, int height, int bitRate, File outputFile)
+    public VideoEncoderCore(int width, int height, int bitRate, File outputFile, UDPControl control)
             throws IOException {
-    	
-    	InetAddress ip = null;
-		try {
-			//ip = InetAddress.getByName("192.168.25.131");
-			ip = InetAddress.getByName("192.168.25.33");
-		} catch (UnknownHostException e) {
-			Log.e(VoicerHelper.TAG, "Erro ao pegar o ip", e);
-		}
-		
-		control = new UDPControl(Voicer.getAppContext(), ip);   	
-    	
-    	
-    	
-    	
+    	    	
+		this.control = control;    	
     	
     	
         mBufferInfo = new MediaCodec.BufferInfo();
@@ -214,10 +201,12 @@ public class VideoEncoderCore {
                     
                     encodedData.remaining();
                     //mMuxer.writeSampleData(mTrackIndex, encodedData, mBufferInfo);
-                    byte[] pct = new byte[encodedData.remaining()];
+                    byte[] pct = new byte[encodedData.remaining()];                    
                     encodedData.get(pct, encodedData.position(), pct.length);
                     
-                    control.send(pct);
+                    UdpPacket udpPct = new UdpPacket(UdpPacket.VIDEO, pct);
+                    
+                    control.send(udpPct);
                     
                     if (VERBOSE) {
                         Log.d(TAG, "sent " + mBufferInfo.size + " bytes to muxer, ts=" +

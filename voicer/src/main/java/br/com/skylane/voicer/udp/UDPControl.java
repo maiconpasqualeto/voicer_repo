@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -25,20 +24,23 @@ public class UDPControl {
 	private static final int SERVER_PORT = 1234;
 	
 	private MulticastSocket sSocket;
-	private InetAddress ipAddress;
+	private InetAddress ipSource;
+	private InetAddress ipTarget;
 	private Context ctx;
-	private BlockingQueue<byte[]> fila = new LinkedBlockingQueue<byte[]>();  
+	private BlockingQueue<UdpPacket> fila = new LinkedBlockingQueue<UdpPacket>();  
 	private Thread readThread;
 	private Thread sendThread;
 	
 	//InetAddress.getByName("192.168.25.131");
 
-	public UDPControl(Context ctx, InetAddress ipAddress) {
+	public UDPControl(Context ctx, InetAddress ipSource, InetAddress ipTarget) {
 		this.ctx = ctx;
-		this.ipAddress = ipAddress;
+		this.ipSource = ipSource;
+		this.ipTarget = ipTarget;
 		
 		try {
 			sSocket = new MulticastSocket(SERVER_PORT);
+			sSocket.setBroadcast(true);
 			
 		} catch (IOException e) {
 			Log.d(VoicerHelper.TAG, "Erro na conexão socket", e);
@@ -66,6 +68,7 @@ public class UDPControl {
 						return;
 					
 					DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
+					//InetSocketAddress sa = (InetSocketAddress) dp.getSocketAddress();
 					
 					sSocket.receive(dp);
 					//Log.d("VOICER", new String(lMsg, 0, dp.getLength()));
@@ -97,13 +100,11 @@ public class UDPControl {
 					if (sSocket == null)
 						return;
 					
-					byte[] buffer = fila.take();
+					UdpPacket pct = fila.take();
 					
-					DatagramPacket dp = new DatagramPacket(buffer,
-							buffer.length, ipAddress,
-							SERVER_PORT);
-					sSocket.setBroadcast(true);
-					sSocket.send(dp);					
+					DatagramPacket dp = pct.getDatagramPacket();					
+					
+					sSocket.send(dp);
 					
 				} catch (Throwable e) {
 					Log.e(VoicerHelper.TAG, "Throwable: " + e);
@@ -117,8 +118,11 @@ public class UDPControl {
 	 * 
 	 * @param pct
 	 */
-	public void send(byte[] pct) {
+	public void send(UdpPacket pct) {
 		try {
+			pct.setIpSource(ipSource);
+			pct.setIpTarget(ipTarget);
+			pct.setPort(SERVER_PORT);
 			
 			fila.put(pct);
 			
