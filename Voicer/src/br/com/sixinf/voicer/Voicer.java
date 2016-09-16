@@ -3,9 +3,7 @@
  */
 package br.com.sixinf.voicer;
 
-import org.doubango.ngn.NgnApplication;
-import org.webrtc.PeerConnectionFactory;
-
+import android.app.Application;
 import android.content.Context;
 import android.util.Log;
 
@@ -13,7 +11,7 @@ import android.util.Log;
  * @author maicon
  *
  */
-public class Voicer extends NgnApplication {
+public class Voicer extends Application {
 	
 	private static Context context;
 	
@@ -25,14 +23,6 @@ public class Voicer extends NgnApplication {
 	public void onCreate() {
 		super.onCreate();
 		Voicer.context = getApplicationContext();
-		boolean ok = PeerConnectionFactory.initializeAndroidGlobals(
-				context,
-			    true,
-			    true,
-			    true,
-			    null);
-		Log.d("VOICER", "*********** " + ok);
-				
 	}
 	
 	public static Context getAppContext() {

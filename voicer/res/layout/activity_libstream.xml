@@ -15,15 +15,19 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
         
-        <SurfaceView 
+        <FrameLayout 
             android:id="@+id/video_remote_video" 
             android:layout_width="match_parent"  
             android:layout_height="match_parent"
             android:layout_gravity="bottom|end" 
             android:gravity="bottom|end" 
             android:background="@android:color/black">            
-	        
-	    </SurfaceView>
+	        <net.majorkernelpanic.streaming.gl.SurfaceView
+	            android:id="@+id/remote_surfaceView"
+	            android:layout_width="match_parent"
+	            android:layout_height="match_parent"
+	            android:layout_gravity="center" />	
+	    </FrameLayout>
 	    
         <TextView
 	        android:id="@+id/video_lblStatus"
@@ -48,7 +52,7 @@
             android:layout_height="94dp" 
             android:layout_width="94dp">
             
-            <android.opengl.GLSurfaceView
+            <net.majorkernelpanic.streaming.gl.SurfaceView
 	            android:id="@+id/cameraPreview_surfaceView"
 	            android:layout_width="match_parent"
 	            android:layout_height="match_parent"

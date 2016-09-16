@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import com.biasedbit.efflux.packet.DataPacket;
+
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
@@ -28,6 +30,7 @@ import android.util.Log;
 import android.view.Surface;
 import br.com.skylane.voicer.Voicer;
 import br.com.skylane.voicer.VoicerHelper;
+import br.com.skylane.voicer.udp.PayloadType;
 import br.com.skylane.voicer.udp.UDPControl;
 import br.com.skylane.voicer.udp.UdpPacket;
 
@@ -203,10 +206,8 @@ public class VideoEncoderCore {
                     //mMuxer.writeSampleData(mTrackIndex, encodedData, mBufferInfo);
                     byte[] pct = new byte[encodedData.remaining()];                    
                     encodedData.get(pct, encodedData.position(), pct.length);
-                    
-                    UdpPacket udpPct = new UdpPacket(UdpPacket.VIDEO, pct);
-                    
-                    control.send(udpPct);
+                                        
+                    control.sendData(pct, System.currentTimeMillis(), false, PayloadType.VIDEO);
                     
                     if (VERBOSE) {
                         Log.d(TAG, "sent " + mBufferInfo.size + " bytes to muxer, ts=" +

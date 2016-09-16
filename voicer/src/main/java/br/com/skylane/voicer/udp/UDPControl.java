@@ -5,13 +5,14 @@ package br.com.skylane.voicer.udp;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import android.content.Context;
-import android.content.Intent;
+import com.biasedbit.efflux.packet.DataPacket;
+import com.biasedbit.efflux.participant.RtpParticipant;
+
 import android.util.Log;
 import br.com.skylane.voicer.VoicerHelper;
 
@@ -21,25 +22,26 @@ import br.com.skylane.voicer.VoicerHelper;
  */
 public class UDPControl {
 
-	private static final int SERVER_PORT = 1234;
+	private static final int SERVER_DATA_PORT = 5006;
+	//private static final int SERVER_CONTROL_PORT = 5007;
+	protected final AtomicInteger sequence = new AtomicInteger(0);
 	
 	private MulticastSocket sSocket;
-	private InetAddress ipSource;
-	private InetAddress ipTarget;
-	private Context ctx;
-	private BlockingQueue<UdpPacket> fila = new LinkedBlockingQueue<UdpPacket>();  
+	private BlockingQueue<DataPacket> fila = new LinkedBlockingQueue<DataPacket>();  
 	private Thread readThread;
 	private Thread sendThread;
+	private PacketReceivedListener listener; 
+	private RtpParticipant localParticipant;
+	
+	
 	
 	//InetAddress.getByName("192.168.25.131");
 
-	public UDPControl(Context ctx, InetAddress ipSource, InetAddress ipTarget) {
-		this.ctx = ctx;
-		this.ipSource = ipSource;
-		this.ipTarget = ipTarget;
+	public UDPControl(RtpParticipant localParticipant) {
+		this.localParticipant = localParticipant;
 		
 		try {
-			sSocket = new MulticastSocket(SERVER_PORT);
+			sSocket = new MulticastSocket(SERVER_DATA_PORT);
 			sSocket.setBroadcast(true);
 			
 		} catch (IOException e) {
@@ -60,7 +62,7 @@ public class UDPControl {
 		public void run() {
 			super.run();
 			
-			byte[] buffer = new byte[4096];
+			byte[] buffer = new byte[256];
 			
 			while (!isInterrupted()) {
 				try {
@@ -73,11 +75,10 @@ public class UDPControl {
 					sSocket.receive(dp);
 					//Log.d("VOICER", new String(lMsg, 0, dp.getLength()));
 					
-					Intent i = new Intent();
-					i.setAction("br.com.skylane.voicer.MESSAGE_RECEIVED");
-					i.putExtra("pct",
-							new String(buffer, 0, dp.getLength()));
-					ctx.sendBroadcast(i);
+					if (listener != null)
+						listener.processDatagramPacket(dp);
+					else 
+						throw new IllegalStateException("'PacketReceivedListener' not set");
 										
 				} catch (Throwable e) {
 					Log.e(VoicerHelper.TAG, "Throwable: " + e);
@@ -100,9 +101,10 @@ public class UDPControl {
 					if (sSocket == null)
 						return;
 					
-					UdpPacket pct = fila.take();
-					
-					DatagramPacket dp = pct.getDatagramPacket();					
+					DataPacket pct = fila.take();
+					byte[] dados = pct.encode().array();
+					DatagramPacket dp = new DatagramPacket(dados, dados.length, 
+							localParticipant.getDataDestination());
 					
 					sSocket.send(dp);
 					
@@ -118,11 +120,10 @@ public class UDPControl {
 	 * 
 	 * @param pct
 	 */
-	public void send(UdpPacket pct) {
+	public void send(DataPacket pct) {
 		try {
-			pct.setIpSource(ipSource);
-			pct.setIpTarget(ipTarget);
-			pct.setPort(SERVER_PORT);
+			pct.setSsrc(this.localParticipant.getSsrc());
+			pct.setSequenceNumber(this.sequence.incrementAndGet());
 			
 			fila.put(pct);
 			
@@ -130,6 +131,25 @@ public class UDPControl {
 			Log.e(VoicerHelper.TAG, "Erro ao colocar pct na fila" + e);
 		}
 	}
+	
+	/**
+	 * 
+	 * @param data
+	 * @param timestamp
+	 * @param marked
+	 * @param payloadType
+	 * @return
+	 */
+    public void sendData(byte[] data, long timestamp, boolean marked, PayloadType payloadType) {        
+    	DataPacket packet = new DataPacket();
+        packet.setTimestamp(timestamp);
+        packet.setData(data);
+        packet.setMarker(marked);
+        packet.setPayloadType(payloadType.getValue());
+        
+        send(packet);
+    }
+    
 	
 	/**
 	 * 
@@ -147,5 +167,10 @@ public class UDPControl {
 			fila.clear();
 		}
 	}
+
+	public void setListener(PacketReceivedListener listener) {
+		this.listener = listener;
+	}
+		
 
 }

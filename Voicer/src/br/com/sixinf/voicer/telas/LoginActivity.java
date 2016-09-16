@@ -20,6 +20,7 @@ import br.com.sixinf.voicer.ObserverData;
 import br.com.sixinf.voicer.R;
 import br.com.sixinf.voicer.receivers.RegistrationBroadcastReceiver;
 import br.com.sixinf.voicer.sip.VoicerFacade;
+import br.com.sixinf.voicer.webrtc.RTCService;
 
 /**
  * @author maicon
@@ -39,8 +40,7 @@ public class LoginActivity extends Activity implements IUpdateStatus {
 		setContentView(R.layout.activity_login);
 		
 		// Inicializa a fachada e a engine do Audio
-		VoicerFacade.getInstance().createVoicerService(this);
-		VoicerFacade.getInstance().startSipService();
+		RTCService.getInstance().startupService();
 		
 		txtUsuario = (EditText) findViewById(R.id.login_txtUsuario);
 		txtSenha = (EditText) findViewById(R.id.login_txtSenha);
@@ -50,7 +50,8 @@ public class LoginActivity extends Activity implements IUpdateStatus {
 		btnLogar.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				VoicerFacade.getInstance().registerNoServidorSIP();
+				//VoicerFacade.getInstance().registerNoServidorSIP();
+				
 			}
 		});
 		

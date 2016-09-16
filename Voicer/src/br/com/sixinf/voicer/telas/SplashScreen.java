@@ -16,13 +16,14 @@ public class SplashScreen extends Activity {
 		setContentView(R.layout.activity_splash_screen);
 		
 		// Inicializa a fachada e a engine do Audio
-		VoicerFacade.getInstance().createVoicerService(this);
-		VoicerFacade.getInstance().startSipService();
+		/*VoicerFacade.getInstance().createVoicerService(this);
+		VoicerFacade.getInstance().startSipService();*/
 		
 		Handler h = new Handler();
         h.postDelayed(new Runnable() {
             public void run() {
-                Intent it = new Intent(Voicer.getAppContext(), VoicerActivity.class);
+                //Intent it = new Intent(Voicer.getAppContext(), VoicerActivity.class);
+            	Intent it = new Intent(Voicer.getAppContext(), LoginActivity.class);
                 startActivity(it);
             }
 

@@ -9,6 +9,8 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
+import com.biasedbit.efflux.participant.RtpParticipant;
+
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -45,7 +47,7 @@ public class TestActivity extends Activity {
 		} catch (UnknownHostException e) {
 			Log.e(VoicerHelper.TAG, "Erro ao pegar o ip", e);
 		}
-		control = new UDPControl(this, ipSource, ipTarget);
+		control = new UDPControl(RtpParticipant.createReceiver("127.0.0.1", 5006, 5007));
         
         
         final EditText txtReceive = (EditText) findViewById(R.id.txtReceive);
@@ -61,8 +63,8 @@ public class TestActivity extends Activity {
 			public void onClick(View v) {
 				
 				String msg = txtSend.getText().toString();
-				UdpPacket pct = new UdpPacket(UdpPacket.AUDIO, msg.getBytes());
-				control.send(pct);
+				//UdpPacket pct = new UdpPacket(UdpPacket.AUDIO, msg.getBytes());
+				//control.send(pct);
 				
 			}
         });
@@ -70,8 +72,8 @@ public class TestActivity extends Activity {
 		rec = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				String str = intent.getStringExtra("pct");
-				txtReceive.append(str + "\r\n");
+				byte[] pacote = intent.getExtras().getByteArray("pct");
+				txtReceive.append(new String(pacote) + "\r\n");
 			}
 		};
 		

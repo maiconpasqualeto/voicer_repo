@@ -9,6 +9,12 @@ import java.net.UnknownHostException;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import com.android.grafika.CameraUtils;
+import com.android.grafika.TextureMovieEncoder;
+import com.android.grafika.gles.FullFrameRect;
+import com.android.grafika.gles.Texture2dProgram;
+import com.biasedbit.efflux.participant.RtpParticipant;
+
 import android.app.Activity;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
@@ -20,12 +26,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
+import android.view.SurfaceView;
+import br.com.skylane.voicer.rtp.RtpDataPacketListener;
 import br.com.skylane.voicer.udp.UDPControl;
-
-import com.android.grafika.CameraUtils;
-import com.android.grafika.TextureMovieEncoder;
-import com.android.grafika.gles.FullFrameRect;
-import com.android.grafika.gles.Texture2dProgram;
 
 @SuppressWarnings("deprecation")
 public class HelloAndroidActivity extends Activity 
@@ -81,15 +84,16 @@ public class HelloAndroidActivity extends Activity
         mGLView = (GLSurfaceView) findViewById(R.id.cameraPreview_surfaceView);
         mGLView.setEGLContextClientVersion(2);     // select GLES 2.0
         //[Maicon] mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder, outputFile);
-        
+        	
         try {
 	        
         	InetAddress ipSource = InetAddress.getByName("127.0.0.1");
 	        //InetAddress ipTarget = InetAddress.getByName("192.168.25.131");
 	        InetAddress ipTarget = InetAddress.getByName("192.168.25.33");
 	        
-	        UDPControl mControl = new UDPControl(this, ipSource, ipTarget);
-	                
+	        UDPControl mControl = new UDPControl(RtpParticipant.createReceiver("192.168.25.33", 5006, 5007));
+	        mControl.setListener(new RtpDataPacketListener());
+	        
 	        mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder, mControl);
 	        mGLView.setRenderer(mRenderer);
 	        mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
@@ -97,7 +101,11 @@ public class HelloAndroidActivity extends Activity
         } catch (UnknownHostException e) {
         	Log.e(VoicerHelper.TAG, "Erro no nome do host", e);
         }
-                
+        
+        
+        SurfaceView remoteVideo = (SurfaceView) findViewById(R.id.video_remote_video);
+        
+        
     }
     
     @Override
