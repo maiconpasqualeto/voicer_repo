@@ -28,8 +28,6 @@ public class RtpDataPacketListener implements PacketReceivedListener {
 		
 		byte[] packet = dp.getData().array();
 		
-		int length = packet.length;
-		
 		System.out.println("ok");
 	}
 
