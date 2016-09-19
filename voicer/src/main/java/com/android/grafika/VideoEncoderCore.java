@@ -207,7 +207,7 @@ public class VideoEncoderCore {
                     byte[] pct = new byte[encodedData.remaining()];                    
                     encodedData.get(pct, encodedData.position(), pct.length);
                                         
-                    control.sendData(pct, System.currentTimeMillis(), false, PayloadType.VIDEO);
+                    control.sendData(pct, mBufferInfo.presentationTimeUs, false, PayloadType.VIDEO);
                     
                     if (VERBOSE) {
                         Log.d(TAG, "sent " + mBufferInfo.size + " bytes to muxer, ts=" +

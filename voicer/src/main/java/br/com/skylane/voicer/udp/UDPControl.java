@@ -79,10 +79,9 @@ public class UDPControl {
 						listener.processDatagramPacket(dp);
 					else 
 						throw new IllegalStateException("'PacketReceivedListener' not set");
-										
-				} catch (Throwable e) {
-					Log.e(VoicerHelper.TAG, "Throwable: " + e);
-					return;
+				
+				} catch (IOException e) {
+					Log.e(VoicerHelper.TAG, "Erro de IO: " + e);					
 				}
 			}
 		}
@@ -110,7 +109,6 @@ public class UDPControl {
 					
 				} catch (Throwable e) {
 					Log.e(VoicerHelper.TAG, "Throwable: " + e);
-					return;
 				}
 			}			
 		}
