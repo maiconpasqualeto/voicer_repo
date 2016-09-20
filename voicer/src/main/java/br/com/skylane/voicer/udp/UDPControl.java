@@ -73,7 +73,6 @@ public class UDPControl {
 					//InetSocketAddress sa = (InetSocketAddress) dp.getSocketAddress();
 					
 					sSocket.receive(dp);
-					//Log.d("VOICER", new String(lMsg, 0, dp.getLength()));
 					
 					if (listener != null)
 						listener.processDatagramPacket(dp);
@@ -122,6 +121,8 @@ public class UDPControl {
 		try {
 			pct.setSsrc(this.localParticipant.getSsrc());
 			pct.setSequenceNumber(this.sequence.incrementAndGet());
+			
+			//Log.d(VoicerHelper.TAG, ">> sequence # " + pct.getSequenceNumber());
 			
 			fila.put(pct);
 			

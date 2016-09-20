@@ -46,7 +46,7 @@ import br.com.skylane.voicer.udp.UdpPacket;
  */
 public class VideoEncoderCore {
     private static final String TAG = VoicerHelper.TAG;
-    private static final boolean VERBOSE = true;
+    private static final boolean VERBOSE = false;
 
     // TODO: these ought to be configurable as well
     private static final String MIME_TYPE = "video/avc";    // H.264 Advanced Video Coding
@@ -206,12 +206,13 @@ public class VideoEncoderCore {
                     //mMuxer.writeSampleData(mTrackIndex, encodedData, mBufferInfo);
                     byte[] pct = new byte[encodedData.remaining()];                    
                     encodedData.get(pct, encodedData.position(), pct.length);
-                                        
+                    
                     control.sendData(pct, mBufferInfo.presentationTimeUs, false, PayloadType.VIDEO);
                     
                     if (VERBOSE) {
-                        Log.d(TAG, "sent " + mBufferInfo.size + " bytes to muxer, ts=" +
+                        Log.d(TAG, ">> sent " + mBufferInfo.size + " bytes to muxer, ts=" +
                                 mBufferInfo.presentationTimeUs);
+                        Log.d(TAG, ">> HEX " + VoicerHelper.converteDadosBinariosParaStringHexa(pct));
                     }
                 }
 

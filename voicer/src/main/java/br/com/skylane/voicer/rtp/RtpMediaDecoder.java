@@ -38,6 +38,7 @@ import android.media.MediaFormat;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import br.com.skylane.voicer.VoicerHelper;
 import br.com.skylane.voicer.udp.PacketReceivedListener;
 
 /**
@@ -62,7 +63,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
     private static final int IFRAME_INTERVAL = 5;           // 5 seconds between I-frames
 
     // constant used to activate and deactivate logs
-    public static boolean DEBUGGING;
+    public static boolean DEBUGGING = true;
     // surface view where to play video
     private final SurfaceView surfaceView;
     //private final Properties configuration;
@@ -75,6 +76,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
     private MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
     private MediaCodec decoder;
     private Log log = LogFactory.getLog(RtpMediaDecoder.class);
+    private long startMs;
     // If this stream is set, use it to trace packet arrival data
     //private OutputStream traceOutputStream = null;
 
@@ -124,10 +126,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
         //layoutParams.height = SURFACE_HEIGHT; // required height
         //surfaceView.setLayoutParams(layoutParams);
         
-        if (playerThread == null) {
-            playerThread = new PlayerThread(holder.getSurface());
-            playerThread.start();
-        }
+        
     }
 
     /**
@@ -140,7 +139,10 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
      */
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        
+    	if (playerThread == null) {
+            playerThread = new PlayerThread(holder.getSurface());
+            playerThread.start();
+        }
     }
 
     @Override
@@ -191,16 +193,8 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
                 sleep(500);
             } catch (InterruptedException e) {
             }
-            String mimeType = "video/avc";
-            int width = 640;
-            int height = 480;
 
-            MediaFormat mediaFormat = MediaFormat.createVideoFormat(mimeType, width, height);
-            mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT,
-                    MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
-            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 1000000);
-            mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
-            mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);
+            MediaFormat mediaFormat = getMediaFormat();
             String mime = mediaFormat.getString(MediaFormat.KEY_MIME);
             if (mime.startsWith("video/")) {
                 decoder = MediaCodec.createDecoderByType(mime);
@@ -215,6 +209,8 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
             decoder.start();
             inputBuffers = decoder.getInputBuffers();
             outputBuffers = decoder.getOutputBuffers();
+            
+            startMs = System.currentTimeMillis();
         }
         
         /**
@@ -224,48 +220,55 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
          * @throws Exception
          */
         public void decodeFrame(DataPacket decodeBuffer) {
-            /*if (DEBUGGING) {
+            if (DEBUGGING) {
                 // Dump buffer to logcat
                 log.info(decodeBuffer.toString());
-            }*/
+            }
         	
-        	int inputBufIndex = decoder.dequeueInputBuffer(-1);
-            ByteBuffer inputBuf = inputBuffers[inputBufIndex];
-            inputBuf.clear();
-            inputBuf.put(decodeBuffer.getDataAsArray());
-        	
-            // Queue the sample to be decoded
-            decoder.queueInputBuffer(inputBufIndex, 0,
-                    decodeBuffer.getDataSize(), decodeBuffer.getTimestamp(), 0);
+        	try {
+        		
+	        	int inputBufIndex = decoder.dequeueInputBuffer(-1);
+	            ByteBuffer inputBuf = inputBuffers[inputBufIndex];
+	            inputBuf.clear();
+	            inputBuf.put(decodeBuffer.getDataAsArray());
+	        	
+	            // Queue the sample to be decoded
+	            decoder.queueInputBuffer(inputBufIndex, 0,
+	                    decodeBuffer.getDataSize(), decodeBuffer.getTimestamp(), 0);
 
-            // Read the decoded output
-            int outIndex = decoder.dequeueOutputBuffer(info, 10000);
-            switch (outIndex) {
-                case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-                    if (DEBUGGING) {
-                        log.info("The output buffers have changed.");
-                    }
-                    outputBuffers = decoder.getOutputBuffers();
-                    break;
-                case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-                    if (DEBUGGING) {
-                        log.info("New format " + decoder.getOutputFormat());
-                    }
-                    break;
-                case MediaCodec.INFO_TRY_AGAIN_LATER:
-                    if (DEBUGGING) {
-                        log.info("Call to dequeueOutputBuffer timed out.");
-                    }
-                    break;
-                default:
-                    if (DEBUGGING) {
-                        ByteBuffer buffer = outputBuffers[outIndex];
-                        log.info("We can't use this buffer but render it due to the API limit, " + buffer);
-                    }
-
-                    // return buffer to the codec
-                    decoder.releaseOutputBuffer(outIndex, true);
-                    break;
+            
+	            // Read the decoded output            
+	            int outIndex = decoder.dequeueOutputBuffer(info, 10000);
+	            switch (outIndex) {
+	                case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
+	                    if (DEBUGGING) {
+	                        log.info("The output buffers have changed.");
+	                    }
+	                    outputBuffers = decoder.getOutputBuffers();
+	                    break;
+	                case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
+	                    if (DEBUGGING) {
+	                        log.info("New format " + decoder.getOutputFormat());
+	                    }
+	                    break;
+	                case MediaCodec.INFO_TRY_AGAIN_LATER:
+	                    if (DEBUGGING) {
+	                        log.info("Call to dequeueOutputBuffer timed out.");
+	                    }
+	                    break;
+	                default:
+	                    if (DEBUGGING) {
+	                        ByteBuffer buffer = outputBuffers[outIndex];
+	                        log.info("We can't use this buffer but render it due to the API limit, " + buffer);
+	                    }
+	
+	                    // return buffer to the codec
+	                    decoder.releaseOutputBuffer(outIndex, true);
+	                    break;
+	            }
+	            
+            } catch (IllegalStateException e) {
+            	android.util.Log.e("VOICER", "Pacote inválido", e);
             }
 
             // All decoded frames have been rendered, we can stop playing now
@@ -274,6 +277,34 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
             }
         }
     }
+    
+    /**
+     * 
+     * @return
+     */
+    public MediaFormat getMediaFormat() {
+        String mimeType = "video/avc";
+        int width = 640;
+        int height = 480;
+
+        MediaFormat format = MediaFormat.createVideoFormat(mimeType, width, height);
+
+        // from avconv, when streaming sample.h264.mp4 from disk
+        byte[] header_sps = {0, 0, 0, 1, // header
+                0x67, 0x64, (byte) 0x00, 0x1e, (byte) 0xac, (byte) 0xd9, 0x40, (byte) 0xa0, 0x3d,
+                (byte) 0xa1, 0x00, 0x00, (byte) 0x03, 0x00, 0x01, 0x00, 0x00, 0x03, 0x00, 0x3C, 0x0F, 0x16, 0x2D, (byte) 0x96}; // sps
+        byte[] header_pps = {0, 0, 0, 1, // header
+                0x68, (byte) 0xeb, (byte) 0xec, (byte) 0xb2, 0x2C}; // pps
+
+
+        format.setByteBuffer("csd-0", ByteBuffer.wrap(header_sps));
+        format.setByteBuffer("csd-1", ByteBuffer.wrap(header_pps));
+
+        //format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, width * height);
+        format.setInteger("durationUs", 12600000);
+
+        return format;
+}    
 
 	@Override
 	public void processDatagramPacket(DatagramPacket pct) {
@@ -282,7 +313,11 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 		
 		DataPacket dp = DataPacket.decode(buffer);
 		
+		android.util.Log.d("VOICER", new String("<< Received: " + pct.getLength()));
+		android.util.Log.d("VOICER", "<< HEX " + VoicerHelper.converteDadosBinariosParaStringHexa(dp.getDataAsArray()));
+		android.util.Log.d("VOICER", "<< Sequence # " + dp.getSequenceNumber());
+		
 		playerThread.decodeFrame(dp);
-	}
+	}	
     
 }

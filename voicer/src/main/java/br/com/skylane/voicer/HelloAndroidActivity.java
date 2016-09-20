@@ -55,6 +55,8 @@ public class HelloAndroidActivity extends Activity
 	
 	private static TextureMovieEncoder sVideoEncoder = new TextureMovieEncoder();
 	
+	private UDPControl mControl; 
+	
 	
     /**
      * Called when the activity is first created.
@@ -99,7 +101,7 @@ public class HelloAndroidActivity extends Activity
 	        InetAddress ipTarget = InetAddress.getByName("192.168.25.131");
 	        //InetAddress ipTarget = InetAddress.getByName("192.168.25.33");
 	        
-	        UDPControl mControl = new UDPControl(RtpParticipant.createReceiver("192.168.25.131", 5006, 5007));
+	        mControl = new UDPControl(RtpParticipant.createReceiver("192.168.21.173", 5006, 5007));
 	        mControl.setListener(md);
 	        
 	        mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder, mControl);
@@ -162,6 +164,7 @@ public class HelloAndroidActivity extends Activity
         super.onDestroy();
         mCameraHandler.invalidateHandler();     // paranoia
         md.release();
+        mControl.close();
     }
     
     @Override
