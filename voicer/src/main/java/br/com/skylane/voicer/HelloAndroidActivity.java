@@ -27,7 +27,6 @@ import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.SurfaceView;
-import br.com.skylane.voicer.rtp.RtpDataPacketListener;
 import br.com.skylane.voicer.rtp.RtpMediaDecoder;
 import br.com.skylane.voicer.udp.UDPControl;
 
@@ -54,8 +53,6 @@ public class HelloAndroidActivity extends Activity
     static final int FILTER_EMBOSS = 5;
 	
 	private static TextureMovieEncoder sVideoEncoder = new TextureMovieEncoder();
-	
-	private UDPControl mControl; 
 	
 	
     /**
@@ -101,7 +98,7 @@ public class HelloAndroidActivity extends Activity
 	        InetAddress ipTarget = InetAddress.getByName("192.168.25.131");
 	        //InetAddress ipTarget = InetAddress.getByName("192.168.25.33");
 	        
-	        mControl = new UDPControl(RtpParticipant.createReceiver("192.168.21.173", 5006, 5007));
+	        UDPControl mControl = new UDPControl(RtpParticipant.createReceiver("192.168.25.131", 5006, 5007));
 	        mControl.setListener(md);
 	        
 	        mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder, mControl);
@@ -164,7 +161,6 @@ public class HelloAndroidActivity extends Activity
         super.onDestroy();
         mCameraHandler.invalidateHandler();     // paranoia
         md.release();
-        mControl.close();
     }
     
     @Override
