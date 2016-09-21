@@ -207,12 +207,12 @@ public class VideoEncoderCore {
                     byte[] pct = new byte[encodedData.remaining()];                    
                     encodedData.get(pct, encodedData.position(), pct.length);
                     
-                    control.sendData(pct, mBufferInfo.presentationTimeUs, false, PayloadType.VIDEO);
+                    control.sendData(pct, mBufferInfo.presentationTimeUs / 10, false, PayloadType.VIDEO);
                     
-                    if (VERBOSE) {
+                    if (VERBOSE) {                    	
                         Log.d(TAG, ">> sent " + mBufferInfo.size + " bytes to muxer, ts=" +
                                 mBufferInfo.presentationTimeUs);
-                        Log.d(TAG, ">> HEX " + VoicerHelper.converteDadosBinariosParaStringHexa(pct));
+                        Log.d(TAG, ">> HEX " + VoicerHelper.converteDadosBinariosParaStringHexa(pct));                        
                     }
                 }
 

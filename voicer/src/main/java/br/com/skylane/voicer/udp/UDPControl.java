@@ -104,6 +104,12 @@ public class UDPControl {
 					DatagramPacket dp = new DatagramPacket(dados, dados.length, 
 							localParticipant.getDataDestination());
 					
+					/*String str = "";
+					for (int i=0; i<dados.length; i++)
+						str+=dados[i] + ":";
+					
+					Log.d(VoicerHelper.TAG, ">> #" + pct.getSequenceNumber() + " enc_time " + pct.getTimestamp() + " " + str);*/					
+					
 					sSocket.send(dp);
 					
 				} catch (Throwable e) {
@@ -121,8 +127,8 @@ public class UDPControl {
 		try {
 			pct.setSsrc(this.localParticipant.getSsrc());
 			pct.setSequenceNumber(this.sequence.incrementAndGet());
-			
-			//Log.d(VoicerHelper.TAG, ">> sequence # " + pct.getSequenceNumber());
+						
+			Log.d(VoicerHelper.TAG, ">> pct_time " + pct.getTimestamp());
 			
 			fila.put(pct);
 			

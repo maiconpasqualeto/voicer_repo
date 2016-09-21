@@ -122,9 +122,9 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         android.view.ViewGroup.LayoutParams layoutParams = surfaceView.getLayoutParams();
-        //layoutParams.width = SURFACE_WIDTH; // required width
-        //layoutParams.height = SURFACE_HEIGHT; // required height
-        //surfaceView.setLayoutParams(layoutParams);
+        layoutParams.width = SURFACE_WIDTH; // required width
+        layoutParams.height = SURFACE_HEIGHT; // required height
+        surfaceView.setLayoutParams(layoutParams);
         
         
     }
@@ -234,7 +234,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 	        	
 	            // Queue the sample to be decoded
 	            decoder.queueInputBuffer(inputBufIndex, 0,
-	                    decodeBuffer.getDataSize(), info.presentationTimeUs, 0);
+	                    decodeBuffer.getDataSize(), decodeBuffer.getTimestamp(), 0);
 	            
             
 	            // Read the decoded output            
@@ -308,14 +308,24 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 
 	@Override
 	public void processDatagramPacket(DatagramPacket pct) {
+		if (playerThread == null)
+			return;
+		
 		ChannelBuffer buffer = ChannelBuffers.buffer(pct.getLength());
 		buffer.writeBytes(pct.getData(), 0, pct.getLength());
 		
 		DataPacket dp = DataPacket.decode(buffer);
+		dp.setTimestamp(dp.getTimestamp() * 10);
 		
-		android.util.Log.d("VOICER", new String("<< Received: " + pct.getLength()));
+		/*android.util.Log.d("VOICER", new String("<< Received: " + pct.getLength()));
 		android.util.Log.d("VOICER", "<< HEX " + VoicerHelper.converteDadosBinariosParaStringHexa(dp.getDataAsArray()));
-		android.util.Log.d("VOICER", "<< Sequence # " + dp.getSequenceNumber());
+		android.util.Log.d("VOICER", "<< Sequence # " + dp.getSequenceNumber());*/
+		
+		/*String str = "";
+		for (int i=0; i<pct.getLength(); i++)
+			str+=pct.getData()[i] + ":";
+		
+		android.util.Log.d(VoicerHelper.TAG, "<< #" + dp.getSequenceNumber() + "pct_time " + dp.getTimestamp() + " " + str);*/
 		
 		playerThread.decodeFrame(dp);
 	}	
