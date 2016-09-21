@@ -231,12 +231,11 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 	            ByteBuffer inputBuf = inputBuffers[inputBufIndex];
 	            inputBuf.clear();
 	            inputBuf.put(decodeBuffer.getDataAsArray());
-	        	
+	        		            
 	            // Queue the sample to be decoded
 	            decoder.queueInputBuffer(inputBufIndex, 0,
 	                    decodeBuffer.getDataSize(), decodeBuffer.getTimestamp(), 0);
-	            
-            
+	            	            
 	            // Read the decoded output            
 	            int outIndex = decoder.dequeueOutputBuffer(info, 10000);
 	            switch (outIndex) {
@@ -244,7 +243,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 	                    if (DEBUGGING) {
 	                        log.info("The output buffers have changed.");
 	                    }
-	                    outputBuffers = decoder.getOutputBuffers();
+	                    //outputBuffers = decoder.getOutputBuffers();
 	                    break;
 	                case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
 	                    if (DEBUGGING) {
@@ -261,7 +260,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 	                        ByteBuffer buffer = outputBuffers[outIndex];
 	                        log.info("We can't use this buffer but render it due to the API limit, " + buffer);
 	                    }
-	
+	                    
 	                    // return buffer to the codec
 	                    decoder.releaseOutputBuffer(outIndex, true);
 	                    break;
@@ -300,8 +299,14 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
         format.setByteBuffer("csd-0", ByteBuffer.wrap(header_sps));
         format.setByteBuffer("csd-1", ByteBuffer.wrap(header_pps));
 
-        //format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, width * height);
+        format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, width * height);
         format.setInteger("durationUs", 12600000);
+        
+        format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
+                MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+        format.setInteger(MediaFormat.KEY_BIT_RATE, 1000000);
+        format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
+        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);
 
         return format;
 }    
@@ -315,7 +320,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 		buffer.writeBytes(pct.getData(), 0, pct.getLength());
 		
 		DataPacket dp = DataPacket.decode(buffer);
-		dp.setTimestamp(dp.getTimestamp() * 10);
+		dp.setTimestamp(dp.getTimestamp() * 1000L / 90L);
 		
 		/*android.util.Log.d("VOICER", new String("<< Received: " + pct.getLength()));
 		android.util.Log.d("VOICER", "<< HEX " + VoicerHelper.converteDadosBinariosParaStringHexa(dp.getDataAsArray()));
