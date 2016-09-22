@@ -76,7 +76,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
     private MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
     private MediaCodec decoder;
     private Log log = LogFactory.getLog(RtpMediaDecoder.class);
-    private long startMs;
+    //private long startMs;
     // If this stream is set, use it to trace packet arrival data
     //private OutputStream traceOutputStream = null;
 
@@ -210,7 +210,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
             inputBuffers = decoder.getInputBuffers();
             outputBuffers = decoder.getOutputBuffers();
             
-            startMs = System.currentTimeMillis();
+            //startMs = System.currentTimeMillis();
         }
         
         /**
@@ -235,7 +235,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 	            // Queue the sample to be decoded
 	            decoder.queueInputBuffer(inputBufIndex, 0,
 	                    decodeBuffer.getDataSize(), decodeBuffer.getTimestamp(), 0);
-	            	            
+	            
 	            // Read the decoded output            
 	            int outIndex = decoder.dequeueOutputBuffer(info, 10000);
 	            switch (outIndex) {
@@ -257,8 +257,8 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 	                    break;
 	                default:
 	                    if (DEBUGGING) {
-	                        ByteBuffer buffer = outputBuffers[outIndex];
-	                        log.info("We can't use this buffer but render it due to the API limit, " + buffer);
+	                        //ByteBuffer buffer = outputBuffers[outIndex];
+	                        //log.info("We can't use this buffer but render it due to the API limit, " + buffer);
 	                    }
 	                    
 	                    // return buffer to the codec
@@ -283,10 +283,8 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
      */
     public MediaFormat getMediaFormat() {
         String mimeType = "video/avc";
-        int width = 640;
-        int height = 480;
 
-        MediaFormat format = MediaFormat.createVideoFormat(mimeType, width, height);
+        MediaFormat format = MediaFormat.createVideoFormat(mimeType, SURFACE_WIDTH, SURFACE_HEIGHT);
 
         // from avconv, when streaming sample.h264.mp4 from disk
         byte[] header_sps = {0, 0, 0, 1, // header
@@ -294,26 +292,25 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
                 (byte) 0xa1, 0x00, 0x00, (byte) 0x03, 0x00, 0x01, 0x00, 0x00, 0x03, 0x00, 0x3C, 0x0F, 0x16, 0x2D, (byte) 0x96}; // sps
         byte[] header_pps = {0, 0, 0, 1, // header
                 0x68, (byte) 0xeb, (byte) 0xec, (byte) 0xb2, 0x2C}; // pps
-
-
+        
         format.setByteBuffer("csd-0", ByteBuffer.wrap(header_sps));
         format.setByteBuffer("csd-1", ByteBuffer.wrap(header_pps));
 
-        format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, width * height);
+        /*format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, width * height);
         format.setInteger("durationUs", 12600000);
         
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
         format.setInteger(MediaFormat.KEY_BIT_RATE, 1000000);
         format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
-        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);
-
+        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);*/
+        
         return format;
 }    
 
 	@Override
 	public void processDatagramPacket(DatagramPacket pct) {
-		if (playerThread == null)
+		if (playerThread == null || decoder == null)
 			return;
 		
 		ChannelBuffer buffer = ChannelBuffers.buffer(pct.getLength());

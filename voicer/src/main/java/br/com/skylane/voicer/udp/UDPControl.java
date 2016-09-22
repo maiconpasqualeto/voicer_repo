@@ -128,7 +128,7 @@ public class UDPControl {
 			pct.setSsrc(this.localParticipant.getSsrc());
 			pct.setSequenceNumber(this.sequence.incrementAndGet());
 						
-			Log.d(VoicerHelper.TAG, ">> pct_time " + pct.getTimestamp());
+			//Log.d(VoicerHelper.TAG, ">> pct_time " + pct.getTimestamp());
 			
 			fila.put(pct);
 			
@@ -160,6 +160,8 @@ public class UDPControl {
 	 * 
 	 */
 	public void close() {
+		fila.clear();
+		
 		if (readThread != null)
 			readThread.interrupt();
 		
@@ -168,8 +170,7 @@ public class UDPControl {
 		
 		if (sSocket != null) {
 			sSocket.close();
-			sSocket = null;
-			fila.clear();
+			sSocket = null;			
 		}
 	}
 

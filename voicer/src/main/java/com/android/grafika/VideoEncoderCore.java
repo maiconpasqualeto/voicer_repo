@@ -215,7 +215,7 @@ public class VideoEncoderCore {
                     else 
                     	pst = mBufferInfo.presentationTimeUs - ant;
                     
-                    Log.d(TAG, ">> pst " + pst);
+                    //Log.d(TAG, ">> pst " + pst);
                     
                     control.sendData(pct, pst, false, PayloadType.VIDEO);
                     

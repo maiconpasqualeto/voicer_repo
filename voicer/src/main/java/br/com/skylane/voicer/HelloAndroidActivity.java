@@ -101,7 +101,7 @@ public class HelloAndroidActivity extends Activity
 	        InetAddress ipTarget = InetAddress.getByName("192.168.25.131");
 	        //InetAddress ipTarget = InetAddress.getByName("192.168.25.33");
 	        
-	        mControl = new UDPControl(RtpParticipant.createReceiver("192.168.0.100", 5006, 5007));
+	        mControl = new UDPControl(RtpParticipant.createReceiver("192.168.21.173", 5006, 5007));
 	        mControl.setListener(md);
 	        
 	        mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder, mControl);
@@ -163,8 +163,8 @@ public class HelloAndroidActivity extends Activity
         Log.d(VoicerHelper.TAG, "onDestroy");
         super.onDestroy();
         mCameraHandler.invalidateHandler();     // paranoia
-        md.release();
         mControl.close();
+        md.release();        
     }
     
     @Override
