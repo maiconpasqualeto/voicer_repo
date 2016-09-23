@@ -287,11 +287,15 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
         MediaFormat format = MediaFormat.createVideoFormat(mimeType, SURFACE_WIDTH, SURFACE_HEIGHT);
 
         // from avconv, when streaming sample.h264.mp4 from disk
-        byte[] header_sps = {0, 0, 0, 1, // header
+        /*byte[] header_sps = {0, 0, 0, 1, // header
                 0x67, 0x64, (byte) 0x00, 0x1e, (byte) 0xac, (byte) 0xd9, 0x40, (byte) 0xa0, 0x3d,
                 (byte) 0xa1, 0x00, 0x00, (byte) 0x03, 0x00, 0x01, 0x00, 0x00, 0x03, 0x00, 0x3C, 0x0F, 0x16, 0x2D, (byte) 0x96}; // sps
         byte[] header_pps = {0, 0, 0, 1, // header
                 0x68, (byte) 0xeb, (byte) 0xec, (byte) 0xb2, 0x2C}; // pps
+         */
+        
+        byte[] header_sps = {0, 0, 0, 1, 103, 100, 0, 41, -84, 27, 26, -64, -96, 61, -112}; // sps
+        byte[] header_pps = {0, 0, 0, 1, 104, -22, 67, -53}; // pps
         
         format.setByteBuffer("csd-0", ByteBuffer.wrap(header_sps));
         format.setByteBuffer("csd-1", ByteBuffer.wrap(header_pps));
