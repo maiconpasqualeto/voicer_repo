@@ -16,6 +16,8 @@ import com.android.grafika.gles.Texture2dProgram;
 import com.biasedbit.efflux.participant.RtpParticipant;
 
 import android.app.Activity;
+import android.graphics.ImageFormat;
+import android.graphics.PixelFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.opengl.EGL14;
@@ -92,8 +94,9 @@ public class HelloAndroidActivity extends Activity
         SurfaceView remoteVideo = (SurfaceView) findViewById(R.id.video_remote_video);
         
         md = new RtpMediaDecoder(remoteVideo);
-                
+        
         remoteVideo.getHolder().addCallback(md);
+        remoteVideo.getHolder().setFormat(ImageFormat.YV12);
         
         try {
 	        
@@ -101,7 +104,7 @@ public class HelloAndroidActivity extends Activity
 	        InetAddress ipTarget = InetAddress.getByName("192.168.25.131");
 	        //InetAddress ipTarget = InetAddress.getByName("192.168.25.33");
 	        
-	        mControl = new UDPControl(RtpParticipant.createReceiver("192.168.21.173", 5006, 5007));
+	        mControl = new UDPControl(RtpParticipant.createReceiver("192.168.0.101", 5006, 5007));
 	        mControl.setListener(md);
 	        
 	        mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder, mControl);

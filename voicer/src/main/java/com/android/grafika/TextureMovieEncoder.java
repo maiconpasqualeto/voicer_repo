@@ -331,10 +331,10 @@ public class TextureMovieEncoder implements Runnable {
     private void handleFrameAvailable(float[] transform, long timestampNanos) {
         if (VERBOSE) Log.d(TAG, "handleFrameAvailable tr=" + transform);
         mVideoEncoder.drainEncoder(false);
-        // TODO [Maicon] Porque drawFrame de novo sendo que já foi chamado em HelloAndroidActivity linha 586? 
-        // [Maicon] mFullScreen.drawFrame(mTextureId, transform);
+        // TODO [Maicon] Porque drawFrame de novo sendo que já foi chamado em HelloAndroidActivity linha 549? 
+        mFullScreen.drawFrame(mTextureId, transform);
 
-        drawBox(mFrameNum++);
+        //drawBox(mFrameNum++);
 
         mInputWindowSurface.setPresentationTime(timestampNanos);
         mInputWindowSurface.swapBuffers();
