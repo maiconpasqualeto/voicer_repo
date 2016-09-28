@@ -121,10 +121,10 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
      */
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        android.view.ViewGroup.LayoutParams layoutParams = surfaceView.getLayoutParams();
+        /*android.view.ViewGroup.LayoutParams layoutParams = surfaceView.getLayoutParams();
         layoutParams.width = SURFACE_WIDTH; // required width
         layoutParams.height = SURFACE_HEIGHT; // required height
-        surfaceView.setLayoutParams(layoutParams);
+        surfaceView.setLayoutParams(layoutParams);*/
         
         
     }
@@ -283,7 +283,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
      */
     public MediaFormat getMediaFormat() {
         String mimeType = "video/avc";
-
+        
         MediaFormat format = MediaFormat.createVideoFormat(mimeType, SURFACE_WIDTH, SURFACE_HEIGHT);
 
         // from avconv, when streaming sample.h264.mp4 from disk
@@ -299,11 +299,11 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
         
         format.setByteBuffer("csd-0", ByteBuffer.wrap(header_sps));
         format.setByteBuffer("csd-1", ByteBuffer.wrap(header_pps));
-
-        /*format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, width * height);
-        format.setInteger("durationUs", 12600000);
         
-        format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
+        format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, SURFACE_WIDTH * SURFACE_HEIGHT);
+        format.setInteger(MediaFormat.KEY_DURATION, 12600000);
+        
+        /*format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
         format.setInteger(MediaFormat.KEY_BIT_RATE, 1000000);
         format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
@@ -330,8 +330,8 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 		/*String str = "";
 		for (int i=0; i<pct.getLength(); i++)
 			str+=pct.getData()[i] + ":";
-		
-		android.util.Log.d(VoicerHelper.TAG, "<< #" + dp.getSequenceNumber() + "pct_time " + dp.getTimestamp() + " " + str);*/
+		*/
+		//android.util.Log.d(VoicerHelper.TAG, "<< #" + dp.getSequenceNumber() + " length " + dp.getDataSize());
 		
 		playerThread.decodeFrame(dp);
 	}	

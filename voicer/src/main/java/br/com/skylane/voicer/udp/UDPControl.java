@@ -62,7 +62,7 @@ public class UDPControl {
 		public void run() {
 			super.run();
 			
-			byte[] buffer = new byte[256];
+			byte[] buffer = new byte[8192];
 			
 			while (!isInterrupted()) {
 				try {
@@ -107,8 +107,8 @@ public class UDPControl {
 					/*String str = "";
 					for (int i=0; i<dados.length; i++)
 						str+=dados[i] + ":";
-					
-					Log.d(VoicerHelper.TAG, ">> #" + pct.getSequenceNumber() + " enc_time " + pct.getTimestamp() + " " + str);*/					
+					*/
+					//Log.d(VoicerHelper.TAG, ">> #" + pct.getSequenceNumber() + " length " + pct.getDataSize());					
 					
 					sSocket.send(dp);
 					
