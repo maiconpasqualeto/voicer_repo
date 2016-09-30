@@ -52,6 +52,7 @@ public class VideoEncoderCore {
     private static final String MIME_TYPE = "video/avc";    // H.264 Advanced Video Coding
     private static final int FRAME_RATE = 30;               // 30fps
     private static final int IFRAME_INTERVAL = 5;           // 5 seconds between I-frames
+    private static final int MAX_PACK_SIZE = 1300;           // Max package size
 
     private Surface mInputSurface;
     private MediaMuxer mMuxer;
@@ -203,7 +204,7 @@ public class VideoEncoderCore {
                     encodedData.position(mBufferInfo.offset);
                     encodedData.limit(mBufferInfo.offset + mBufferInfo.size);
                     
-                    encodedData.remaining();
+                    //encodedData.remaining();
                     //mMuxer.writeSampleData(mTrackIndex, encodedData, mBufferInfo);
                     byte[] pct = new byte[encodedData.remaining()];                    
                     encodedData.get(pct, encodedData.position(), pct.length);
@@ -217,7 +218,11 @@ public class VideoEncoderCore {
                     
                     //Log.d(TAG, ">> pst " + pst);
                     
-                    control.sendData(pct, pst, false, PayloadType.VIDEO);
+                    if (pct.length > MAX_PACK_SIZE) {
+                    	
+                    } else {                    
+                    	control.sendData(pct, pst, false, PayloadType.VIDEO);
+                    }
                     
                     if (VERBOSE) {                    	
                         Log.d(TAG, ">> sent " + mBufferInfo.size + " bytes to muxer, ts=" +
