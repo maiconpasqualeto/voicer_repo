@@ -20,19 +20,16 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.biasedbit.efflux.packet.DataPacket;
-
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
+import android.preference.PreferenceActivity.Header;
 import android.util.Log;
 import android.view.Surface;
-import br.com.skylane.voicer.Voicer;
 import br.com.skylane.voicer.VoicerHelper;
 import br.com.skylane.voicer.udp.PayloadType;
 import br.com.skylane.voicer.udp.UDPControl;
-import br.com.skylane.voicer.udp.UdpPacket;
 
 /**
  * This class wraps up the core components used for surface-input video encoding.
@@ -63,6 +60,7 @@ public class VideoEncoderCore {
     
     private UDPControl control; 
     private long ant;
+    private byte[] nalHeader = new byte[2];
 
 
     /**
@@ -206,29 +204,58 @@ public class VideoEncoderCore {
                     
                     //encodedData.remaining();
                     //mMuxer.writeSampleData(mTrackIndex, encodedData, mBufferInfo);
-                    byte[] pct = new byte[encodedData.remaining()];                    
-                    encodedData.get(pct, encodedData.position(), pct.length);
+                    int length = encodedData.remaining();
                     
-                    long pst = 1;
-                    
-                    if (ant == 0)
-                    	ant = mBufferInfo.presentationTimeUs;
-                    else 
-                    	pst = mBufferInfo.presentationTimeUs - ant;
+                    long pst = mBufferInfo.presentationTimeUs * 90 / 1000;
                     
                     //Log.d(TAG, ">> pst " + pst);
-                    
-                    if (pct.length > MAX_PACK_SIZE) {
+                    if (length > MAX_PACK_SIZE) {
+                    	int remains = length;
                     	
-                    } else {                    
+                    	nalHeader[0] = (byte) ((0x1F & 0x60) & 0xFF); // FU indicator NRI
+                    	nalHeader[0] += 28;
+                    	
+                    	// Set FU-A header
+                    	nalHeader[1] = (byte) (0x1F & 0x1F);  // FU header type
+                    	nalHeader[1] += 0x80; // Start bit
+                    	
+                    	while ( remains > MAX_PACK_SIZE ) {
+	                    	byte[] pct = new byte[MAX_PACK_SIZE];
+	                    	// Set FU-A indicator
+	                    	pct[0] = nalHeader[0];
+	                    	pct[1] = nalHeader[1];
+	                    	
+	                    	encodedData.get(pct, 2, MAX_PACK_SIZE - 2);
+	                    	
+	                    	control.sendData(pct, pst, false, PayloadType.VIDEO);
+	                    	
+	                    	// after firt pack, set s byte	                    	
+	                    	nalHeader[1] += (nalHeader[1] & 0x7F);
+	                    	
+	                    	remains -= (MAX_PACK_SIZE -2);
+                    	}
+                    	
+                    	byte[] pct = new byte[remains + 2];
+                    	nalHeader[1] += 0x40; // set end bit                    	
+                    	pct[0] = nalHeader[0];
+                    	pct[1] = nalHeader[1];
+                    	                    	
+                    	encodedData.get(pct, 2, remains);
+                    	
+                    	control.sendData(pct, pst, false, PayloadType.VIDEO);
+                    	
+                    } else {
+                    	byte[] pct = new byte[encodedData.remaining() + 1];                    	
+                    	encodedData.get(pct, 1, encodedData.remaining());
+                    	pct[0] = (byte) (pct[5] & 0x1F); // NAL header - copia o tipo do byte 5 do stream
                     	control.sendData(pct, pst, false, PayloadType.VIDEO);
                     }
                     
-                    if (VERBOSE) {                    	
+                    /*if (VERBOSE) {                    	
                         Log.d(TAG, ">> sent " + mBufferInfo.size + " bytes to muxer, ts=" +
                                 mBufferInfo.presentationTimeUs);
                         Log.d(TAG, ">> HEX " + VoicerHelper.converteDadosBinariosParaStringHexa(pct));                        
-                    }
+                    }*/
                 }
 
                 mEncoder.releaseOutputBuffer(encoderStatus, false);

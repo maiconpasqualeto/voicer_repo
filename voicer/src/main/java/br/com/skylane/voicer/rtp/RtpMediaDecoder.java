@@ -219,22 +219,18 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
          * @param decodeBuffer
          * @throws Exception
          */
-        public void decodeFrame(DataPacket decodeBuffer) {
-            if (DEBUGGING) {
-                // Dump buffer to logcat
-                log.info(decodeBuffer.toString());
-            }
-        	
+        public void decodeFrame(byte[] packet, long timestamp) {
+            
         	try {
         		
 	        	int inputBufIndex = decoder.dequeueInputBuffer(-1);
 	            ByteBuffer inputBuf = inputBuffers[inputBufIndex];
 	            inputBuf.clear();
-	            inputBuf.put(decodeBuffer.getDataAsArray());
+	            inputBuf.put(packet);
 	        		            
 	            // Queue the sample to be decoded
 	            decoder.queueInputBuffer(inputBufIndex, 0,
-	                    decodeBuffer.getDataSize(), decodeBuffer.getTimestamp(), 0);
+	            		packet.length, timestamp, 0);
 	            
 	            // Read the decoded output            
 	            int outIndex = decoder.dequeueOutputBuffer(info, 10000);
@@ -317,11 +313,72 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 		if (playerThread == null || decoder == null)
 			return;
 		
-		ChannelBuffer buffer = ChannelBuffers.buffer(pct.getLength());
-		buffer.writeBytes(pct.getData(), 0, pct.getLength());
-		
+		ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(pct.getData(), 0, pct.getLength());		
 		DataPacket dp = DataPacket.decode(buffer);
 		dp.setTimestamp(dp.getTimestamp() * 1000L / 90L);
+		
+		H264Packet h264Packet = new H264Packet(dp);
+		switch (h264Packet.h264NalType){
+			case FULL:
+				playerThread.decodeFrame(dp.getDataAsArray(), dp.getTimestamp());
+			break;
+			case FUA:
+				if (h264Packet.isStart()) {
+                    if (RtpMediaDecoder.DEBUGGING) {
+                        log.info("FU-A start found. Starting new frame");
+                    }
+                    
+                    startFrame(packet.getTimestamp());
+
+                    if (currentFrame != null) {
+                        // Add stream header
+                        if (useByteStreamFormat) {
+                            currentFrame.getBuffer().put(byteStreamStartCodePrefix);
+                        }
+
+                        byte reconstructedNalTypeOctet = h264Packet.getNalTypeOctet();
+                        currentFrame.getBuffer().put(reconstructedNalTypeOctet);
+                    }
+                }
+
+                // if we don't have a buffer here, it means that we skipped the start packet for this
+                // NAL unit, so we can't do anything other than discard everything else
+                if (currentFrame != null) {
+
+                    // Did we miss packets in the middle of a frame transition?
+                    // In that case, I don't think there's much we can do other than flush our buffer
+                    // and discard everything until the next buffer
+                    if (packet.getTimestamp() != currentFrame.getRtpTimestamp()) {
+                        if (RtpMediaDecoder.DEBUGGING) {
+                            log.warn("Non-consecutive timestamp found");
+                        }
+
+                        currentFrameHasError = true;
+                    }
+                    if (sequenceError) {
+                        currentFrameHasError = true;
+                    }
+
+                    // If we survived possible errors, collect data to the current frame buffer
+                    if (!currentFrameHasError) {
+                        currentFrame.getBuffer().put(packet.getData().toByteBuffer(2, packet.getDataSize() - 2));
+                    } else if (RtpMediaDecoder.DEBUGGING) {
+                        log.info("Dropping frame");
+                    }
+
+                    if (h264Packet.isEnd()) {
+                        if (RtpMediaDecoder.DEBUGGING) {
+                            log.info("FU-A end found. Sending frame!");
+                        }
+                        try {
+                            sendFrame();
+                        } catch (Throwable t) {
+                            log.error("Error sending frame.", t);
+                        }
+                    }
+}
+			break;
+		}
 		
 		/*android.util.Log.d("VOICER", new String("<< Received: " + pct.getLength()));
 		android.util.Log.d("VOICER", "<< HEX " + VoicerHelper.converteDadosBinariosParaStringHexa(dp.getDataAsArray()));
@@ -333,7 +390,134 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 		*/
 		//android.util.Log.d(VoicerHelper.TAG, "<< #" + dp.getSequenceNumber() + " length " + dp.getDataSize());
 		
-		playerThread.decodeFrame(dp);
-	}	
+		
+	}
+	
+	/**
+     * Initializes frame for a given timestamp.
+     *
+     * @param rtpTimestamp
+     * @throws Exception
+     */
+    private void startFrame(long rtpTimestamp) {
+        // Reset error bit
+        currentFrameHasError = false;
+
+        // Deal with potentially non-returned buffer due to error
+        if (currentFrame != null) {
+            currentFrame.getBuffer().clear();
+            // Otherwise, get a fresh buffer from the codec
+        } else {
+            try {
+                // Get buffer from decoder
+                currentFrame = decoder.getSampleBuffer();
+                currentFrame.getBuffer().clear();
+
+            } catch (RtpPlayerException e) {
+                // TODO: Proper error handling
+                currentFrameHasError = true;
+                e.printStackTrace();
+            }
+        }
+
+        if (!currentFrameHasError) {
+            // Set the sample timestamp
+            currentFrame.setRtpTimestamp(rtpTimestamp);
+        }
+    }
+
+	
+	
+	private enum NalType {
+        FULL,
+        FUA,
+        STAPA,
+        UNKNOWN
+    }
+
+    /**
+     * H.264 Packet parsed following H.264 spec.
+     */
+    private class H264Packet {
+        private final byte nalFBits;
+        private final byte nalNriBits;
+        private final byte nalType;
+        private boolean fuStart = false;
+        private boolean fuEnd = false;
+        private byte fuNalType;
+        private NalType h264NalType = NalType.UNKNOWN;
+
+        /**
+         * Creates a H.264 packet parsing its content
+         *
+         * @param packet
+         */
+        public H264Packet(DataPacket packet) {
+            // Parsing the RTP Packet - http://www.ietf.org/rfc/rfc3984.txt section 5.3
+            byte nalUnitOctet = packet.getData().getByte(0);
+            nalFBits = (byte) (nalUnitOctet & 0x80);
+            nalNriBits = (byte) (nalUnitOctet & 0x60);
+            nalType = (byte) (nalUnitOctet & 0x1F);
+
+            // If it's a single NAL packet then the entire payload is here
+            if (nalType > 0 && nalType < 24) {
+                h264NalType = NalType.FULL;
+            } else if (nalType == 28) {
+                h264NalType = NalType.FUA;
+
+            } else if (nalType == 24) {
+                h264NalType = NalType.STAPA;
+            }
+
+            byte fuHeader = packet.getData().getByte(1);
+            fuStart = ((fuHeader & 0x80) != 0);
+            fuEnd = ((fuHeader & 0x40) != 0);
+            fuNalType = (byte) (fuHeader & 0x1F);
+        }
+
+        /**
+         * Re-creates the H.264 NAL header for the FU-A header
+         *
+         * @return
+         */
+        public byte getNalTypeOctet() {
+            // Excerpt from the spec:
+            /* "The NAL unit type octet of the fragmented
+               NAL unit is not included as such in the fragmentation unit payload,
+               but rather the information of the NAL unit type octet of the
+               fragmented NAL unit is conveyed in F and NRI fields of the FU
+               indicator octet of the fragmentation unit and in the type field of
+               the FU header"  */
+
+            return (byte) (fuNalType | nalFBits | nalNriBits);
+        }
+
+        /**
+         * Indicates whether this packet is the start of a frame.
+         *
+         * @return
+         */
+        public boolean isStart() {
+            return fuStart;
+        }
+
+        /**
+         * Indicates whether this packet is the end of a frame.
+         *
+         * @return
+         */
+        public boolean isEnd() {
+            return fuEnd;
+        }
+
+        /**
+         * Returns NAL type byte.
+         *
+         * @return
+         */
+        public byte getNalType() {
+            return nalType;
+        }
+}
     
 }
