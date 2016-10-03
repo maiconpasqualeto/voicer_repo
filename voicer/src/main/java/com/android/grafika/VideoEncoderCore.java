@@ -230,7 +230,7 @@ public class VideoEncoderCore {
 	                    	control.sendData(pct, pst, false, PayloadType.VIDEO);
 	                    	
 	                    	// after firt pack, set s byte	                    	
-	                    	nalHeader[1] += (nalHeader[1] & 0x7F);
+	                    	nalHeader[1] = (byte) (nalHeader[1] & 0x7F);
 	                    	
 	                    	remains -= (MAX_PACK_SIZE -2);
                     	}

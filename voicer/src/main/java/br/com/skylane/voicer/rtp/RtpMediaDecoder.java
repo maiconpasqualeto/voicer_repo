@@ -22,6 +22,8 @@
 
 package br.com.skylane.voicer.rtp;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.nio.ByteBuffer;
 
@@ -33,12 +35,10 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import com.biasedbit.efflux.packet.DataPacket;
 
 import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import br.com.skylane.voicer.VoicerHelper;
 import br.com.skylane.voicer.udp.PacketReceivedListener;
 
 /**
@@ -76,6 +76,11 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
     private MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
     private MediaCodec decoder;
     private Log log = LogFactory.getLog(RtpMediaDecoder.class);
+	private boolean currentFrameHasError = false;
+	private ByteArrayOutputStream baos;
+	private long currentTimestamp = 0;
+    private int lastSequenceNumber = 0;
+    private boolean lastSequenceNumberIsValid = false;
     //private long startMs;
     // If this stream is set, use it to trace packet arrival data
     //private OutputStream traceOutputStream = null;
@@ -86,6 +91,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 
         this.surfaceView = surfaceView;
         surfaceView.getHolder().addCallback(this);
+        this.baos = new ByteArrayOutputStream();
     }
 
     /**
@@ -141,6 +147,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
     	if (playerThread == null) {
             playerThread = new PlayerThread(holder.getSurface());
+            playerThread.setName("Received Video Thread");
             playerThread.start();
         }
     }
@@ -317,6 +324,9 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 		DataPacket dp = DataPacket.decode(buffer);
 		dp.setTimestamp(dp.getTimestamp() * 1000L / 90L);
 		
+		if (lastSequenceNumberIsValid && (lastSequenceNumber + 1) != dp.getSequenceNumber())
+            return; // droppack
+				
 		H264Packet h264Packet = new H264Packet(dp);
 		switch (h264Packet.h264NalType){
 			case FULL:
@@ -327,58 +337,53 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
                     if (RtpMediaDecoder.DEBUGGING) {
                         log.info("FU-A start found. Starting new frame");
                     }
-                    
-                    startFrame(packet.getTimestamp());
-
-                    if (currentFrame != null) {
-                        // Add stream header
-                        if (useByteStreamFormat) {
-                            currentFrame.getBuffer().put(byteStreamStartCodePrefix);
-                        }
-
-                        byte reconstructedNalTypeOctet = h264Packet.getNalTypeOctet();
-                        currentFrame.getBuffer().put(reconstructedNalTypeOctet);
-                    }
+                    currentTimestamp = dp.getTimestamp();
                 }
 
                 // if we don't have a buffer here, it means that we skipped the start packet for this
                 // NAL unit, so we can't do anything other than discard everything else
-                if (currentFrame != null) {
+                if (currentTimestamp != 0) {
 
                     // Did we miss packets in the middle of a frame transition?
                     // In that case, I don't think there's much we can do other than flush our buffer
                     // and discard everything until the next buffer
-                    if (packet.getTimestamp() != currentFrame.getRtpTimestamp()) {
+                    if (dp.getTimestamp() != currentTimestamp) {
                         if (RtpMediaDecoder.DEBUGGING) {
                             log.warn("Non-consecutive timestamp found");
                         }
-
-                        currentFrameHasError = true;
+                    } else {
+                    	try {      
+                    		
+	                    	baos.write(dp.getDataAsArray(), 2, dp.getDataSize() - 2);
+	                    	baos.flush();
+	                    	
+                    	} catch(IOException e) {
+                    		log.info("IO Errror!");
+                    	}
                     }
-                    if (sequenceError) {
-                        currentFrameHasError = true;
-                    }
-
-                    // If we survived possible errors, collect data to the current frame buffer
-                    if (!currentFrameHasError) {
-                        currentFrame.getBuffer().put(packet.getData().toByteBuffer(2, packet.getDataSize() - 2));
-                    } else if (RtpMediaDecoder.DEBUGGING) {
-                        log.info("Dropping frame");
-                    }
-
+                   
                     if (h264Packet.isEnd()) {
                         if (RtpMediaDecoder.DEBUGGING) {
                             log.info("FU-A end found. Sending frame!");
                         }
-                        try {
-                            sendFrame();
-                        } catch (Throwable t) {
-                            log.error("Error sending frame.", t);
-                        }
+                        
+                        playerThread.decodeFrame(baos.toByteArray(), currentTimestamp);
+                        
+                        currentTimestamp = 0;
+                        baos.reset();
                     }
-}
+                }
+			break;
+		case STAPA:
+			break;
+		case UNKNOWN:
+			break;
+		default:
 			break;
 		}
+		
+		lastSequenceNumber = dp.getSequenceNumber();
+		lastSequenceNumberIsValid = true;
 		
 		/*android.util.Log.d("VOICER", new String("<< Received: " + pct.getLength()));
 		android.util.Log.d("VOICER", "<< HEX " + VoicerHelper.converteDadosBinariosParaStringHexa(dp.getDataAsArray()));
@@ -392,40 +397,6 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 		
 		
 	}
-	
-	/**
-     * Initializes frame for a given timestamp.
-     *
-     * @param rtpTimestamp
-     * @throws Exception
-     */
-    private void startFrame(long rtpTimestamp) {
-        // Reset error bit
-        currentFrameHasError = false;
-
-        // Deal with potentially non-returned buffer due to error
-        if (currentFrame != null) {
-            currentFrame.getBuffer().clear();
-            // Otherwise, get a fresh buffer from the codec
-        } else {
-            try {
-                // Get buffer from decoder
-                currentFrame = decoder.getSampleBuffer();
-                currentFrame.getBuffer().clear();
-
-            } catch (RtpPlayerException e) {
-                // TODO: Proper error handling
-                currentFrameHasError = true;
-                e.printStackTrace();
-            }
-        }
-
-        if (!currentFrameHasError) {
-            // Set the sample timestamp
-            currentFrame.setRtpTimestamp(rtpTimestamp);
-        }
-    }
-
 	
 	
 	private enum NalType {

@@ -50,8 +50,10 @@ public class UDPControl {
 		}
 		
 		readThread = new ReadThread();
+		readThread.setName("UDP Read Thread");
 		readThread.start();
 		sendThread = new SendThread();
+		readThread.setName("UDP Send Thread");
 		sendThread.start();
 		
 	}
