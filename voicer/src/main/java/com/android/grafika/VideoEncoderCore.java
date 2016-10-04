@@ -20,8 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.biasedbit.efflux.packet.DataPacket;
-
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
@@ -63,7 +61,6 @@ public class VideoEncoderCore {
     private UDPControl control; 
     private long ant;
     private byte[] nalHeader = new byte[2];
-    byte[] pct = new byte[MAX_PACK_SIZE];
 
 
     /**
@@ -223,7 +220,7 @@ public class VideoEncoderCore {
                     	nalHeader[1] += 0x80; // Start bit
                     	
                     	while ( remains > MAX_PACK_SIZE ) {
-	                    	
+	                    	byte[] pct = new byte[MAX_PACK_SIZE];
 	                    	// Set FU-A indicator
 	                    	pct[0] = nalHeader[0];
 	                    	pct[1] = nalHeader[1];
@@ -242,8 +239,9 @@ public class VideoEncoderCore {
                     	nalHeader[1] += 0x40; // set end bit                    	
                     	pct[0] = nalHeader[0];
                     	pct[1] = nalHeader[1];
-                    	
+                    	                    	
                     	encodedData.get(pct, 2, remains);
+                    	
                     	control.sendData(pct, pst, false, PayloadType.VIDEO);
                     	
                     } else {

@@ -22,8 +22,6 @@
 
 package br.com.skylane.voicer.rtp;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.nio.ByteBuffer;
 
@@ -35,6 +33,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import com.biasedbit.efflux.packet.DataPacket;
 
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -301,17 +300,17 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
          */
         
         //byte[] header_sps = {0, 0, 0, 1, 103, 100, 0, 41, -84, 27, 26, -64, -96, 61, -112}; // sps
-        byte[] header_sps = {0, 0, 0, 1, 103, 66, 0, 30, -90, -128, -96, 61, -112}; //-samsung
-        //byte[] header_sps = {0, 0, 0, 1, 103, 66, -128, 30, -85, 64, 80, 30, -48, -128, 0, 0, 3, 0, -128, 0, 0, 30, 112, 32, 0, 122, 18, 0, 15, 66, 86, -79, -80, 16}; //-asus
+        //byte[] header_sps = {0, 0, 0, 1, 103, 66, 0, 30, -90, -128, -96, 61, -112}; //-samsung
+        byte[] header_sps = {0, 0, 0, 1, 103, 66, -128, 30, -85, 64, 80, 30, -48, -128, 0, 0, 3, 0, -128, 0, 0, 30, 112, 32, 0, 122, 18, 0, 15, 66, 86, -79, -80, 16}; //-asus
         //byte[] header_pps = {0, 0, 0, 1, 104, -22, 67, -53}; // pps
-        byte[] header_pps = {0, 0, 0, 1, 104, -50, 56, -128}; // -samsung
-        //byte[] header_pps = {0, 0, 0, 1, 104, -50, 60, -128}; // -asus
+        //byte[] header_pps = {0, 0, 0, 1, 104, -50, 56, -128}; // -samsung
+        byte[] header_pps = {0, 0, 0, 1, 104, -50, 60, -128}; // -asus
         
         format.setByteBuffer("csd-0", ByteBuffer.wrap(header_sps));
         format.setByteBuffer("csd-1", ByteBuffer.wrap(header_pps));
         
-        //format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, SURFACE_WIDTH * SURFACE_HEIGHT);
-        //format.setInteger(MediaFormat.KEY_DURATION, 12600000);
+        format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, SURFACE_WIDTH * SURFACE_HEIGHT);
+        format.setInteger(MediaFormat.KEY_DURATION, 12600000);
         
         /*format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
@@ -335,7 +334,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 			lastSequenceNumber = dp.getSequenceNumber();
             return; // droppack
 		}
-				
+		
 		H264Packet h264Packet = new H264Packet(dp);
 		switch (h264Packet.h264NalType){
 			case FULL:

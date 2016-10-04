@@ -22,7 +22,7 @@ import br.com.skylane.voicer.VoicerHelper;
  */
 public class UDPControl {
 
-	private static final int SERVER_DATA_PORT = 6006;
+	private static final int SERVER_DATA_PORT = 5006;
 	//private static final int SERVER_CONTROL_PORT = 5007;
 	protected final AtomicInteger sequence = new AtomicInteger(0);
 	
@@ -53,7 +53,7 @@ public class UDPControl {
 		readThread.setName("UDP Read Thread");
 		readThread.start();
 		sendThread = new SendThread();
-		readThread.setName("UDP Send Thread");
+		sendThread.setName("UDP Send Thread");
 		sendThread.start();
 		
 	}
@@ -64,7 +64,7 @@ public class UDPControl {
 		public void run() {
 			super.run();
 			
-			byte[] buffer = new byte[8192];
+			byte[] buffer = new byte[2048];
 			
 			while (!isInterrupted()) {
 				try {
