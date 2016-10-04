@@ -63,7 +63,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
     private static final int IFRAME_INTERVAL = 5;           // 5 seconds between I-frames
 
     // constant used to activate and deactivate logs
-    public static boolean DEBUGGING = true;
+    public static boolean DEBUGGING = false;
     // surface view where to play video
     private final SurfaceView surfaceView;
     //private final Properties configuration;
@@ -77,7 +77,9 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
     private MediaCodec decoder;
     private Log log = LogFactory.getLog(RtpMediaDecoder.class);
 	private boolean currentFrameHasError = false;
-	private ByteArrayOutputStream baos;
+	//private ByteArrayOutputStream baos;
+	private ByteBuffer inputBuf;
+	int inputBufIndex;
 	private long currentTimestamp = 0;
     private int lastSequenceNumber = 0;
     private boolean lastSequenceNumberIsValid = false;
@@ -91,7 +93,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 
         this.surfaceView = surfaceView;
         surfaceView.getHolder().addCallback(this);
-        this.baos = new ByteArrayOutputStream();
+        //this.baos = new ByteArrayOutputStream();
     }
 
     /**
@@ -226,18 +228,19 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
          * @param decodeBuffer
          * @throws Exception
          */
-        public void decodeFrame(byte[] packet, long timestamp) {
+        public void decodeFrame(ByteBuffer inputBuf, long timestamp, int offset, int inputBufIndex) {
             
         	try {
         		
-	        	int inputBufIndex = decoder.dequeueInputBuffer(-1);
+	        	/*int inputBufIndex = decoder.dequeueInputBuffer(-1);
 	            ByteBuffer inputBuf = inputBuffers[inputBufIndex];
 	            inputBuf.clear();
-	            inputBuf.put(packet);
-	        		            
+	            inputBuf.put(packet);*/
+        		inputBuf.flip();
+	        	
 	            // Queue the sample to be decoded
-	            decoder.queueInputBuffer(inputBufIndex, 0,
-	            		packet.length, timestamp, 0);
+	            decoder.queueInputBuffer(inputBufIndex, offset,
+	            		inputBuf.remaining(), timestamp, 0);
 	            
 	            // Read the decoded output            
 	            int outIndex = decoder.dequeueOutputBuffer(info, 10000);
@@ -297,14 +300,18 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
                 0x68, (byte) 0xeb, (byte) 0xec, (byte) 0xb2, 0x2C}; // pps
          */
         
-        byte[] header_sps = {0, 0, 0, 1, 103, 100, 0, 41, -84, 27, 26, -64, -96, 61, -112}; // sps
-        byte[] header_pps = {0, 0, 0, 1, 104, -22, 67, -53}; // pps
+        //byte[] header_sps = {0, 0, 0, 1, 103, 100, 0, 41, -84, 27, 26, -64, -96, 61, -112}; // sps
+        byte[] header_sps = {0, 0, 0, 1, 103, 66, 0, 30, -90, -128, -96, 61, -112}; //-samsung
+        //byte[] header_sps = {0, 0, 0, 1, 103, 66, -128, 30, -85, 64, 80, 30, -48, -128, 0, 0, 3, 0, -128, 0, 0, 30, 112, 32, 0, 122, 18, 0, 15, 66, 86, -79, -80, 16}; //-asus
+        //byte[] header_pps = {0, 0, 0, 1, 104, -22, 67, -53}; // pps
+        byte[] header_pps = {0, 0, 0, 1, 104, -50, 56, -128}; // -samsung
+        //byte[] header_pps = {0, 0, 0, 1, 104, -50, 60, -128}; // -asus
         
         format.setByteBuffer("csd-0", ByteBuffer.wrap(header_sps));
         format.setByteBuffer("csd-1", ByteBuffer.wrap(header_pps));
         
-        format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, SURFACE_WIDTH * SURFACE_HEIGHT);
-        format.setInteger(MediaFormat.KEY_DURATION, 12600000);
+        //format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, SURFACE_WIDTH * SURFACE_HEIGHT);
+        //format.setInteger(MediaFormat.KEY_DURATION, 12600000);
         
         /*format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
@@ -324,19 +331,32 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 		DataPacket dp = DataPacket.decode(buffer);
 		dp.setTimestamp(dp.getTimestamp() * 1000L / 90L);
 		
-		if (lastSequenceNumberIsValid && (lastSequenceNumber + 1) != dp.getSequenceNumber())
+		if (lastSequenceNumberIsValid && (lastSequenceNumber + 1) != dp.getSequenceNumber()){
+			lastSequenceNumber = dp.getSequenceNumber();
             return; // droppack
+		}
 				
 		H264Packet h264Packet = new H264Packet(dp);
 		switch (h264Packet.h264NalType){
 			case FULL:
-				playerThread.decodeFrame(dp.getDataAsArray(), dp.getTimestamp());
+								
+				inputBufIndex = decoder.dequeueInputBuffer(-1);
+	            inputBuf = inputBuffers[inputBufIndex];
+	            inputBuf.clear();
+	            inputBuf.put(dp.getDataAsArray());
+	            
+				playerThread.decodeFrame(inputBuf, dp.getTimestamp(), 1, inputBufIndex);
 			break;
 			case FUA:
 				if (h264Packet.isStart()) {
                     if (RtpMediaDecoder.DEBUGGING) {
                         log.info("FU-A start found. Starting new frame");
                     }
+                    
+                    inputBufIndex = decoder.dequeueInputBuffer(-1);
+    	            inputBuf = inputBuffers[inputBufIndex];
+    	            inputBuf.clear();
+    	            
                     currentTimestamp = dp.getTimestamp();
                 }
 
@@ -352,14 +372,9 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
                             log.warn("Non-consecutive timestamp found");
                         }
                     } else {
-                    	try {      
-                    		
-	                    	baos.write(dp.getDataAsArray(), 2, dp.getDataSize() - 2);
-	                    	baos.flush();
-	                    	
-                    	} catch(IOException e) {
-                    		log.info("IO Errror!");
-                    	}
+                    	
+                		inputBuf.put(dp.getDataAsArray(), 2, dp.getDataSize() - 2);
+                    	
                     }
                    
                     if (h264Packet.isEnd()) {
@@ -367,10 +382,10 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
                             log.info("FU-A end found. Sending frame!");
                         }
                         
-                        playerThread.decodeFrame(baos.toByteArray(), currentTimestamp);
+                        playerThread.decodeFrame(inputBuf, currentTimestamp, 0, inputBufIndex);
                         
                         currentTimestamp = 0;
-                        baos.reset();
+                        
                     }
                 }
 			break;

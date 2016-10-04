@@ -22,7 +22,7 @@ import br.com.skylane.voicer.VoicerHelper;
  */
 public class UDPControl {
 
-	private static final int SERVER_DATA_PORT = 5006;
+	private static final int SERVER_DATA_PORT = 6006;
 	//private static final int SERVER_CONTROL_PORT = 5007;
 	protected final AtomicInteger sequence = new AtomicInteger(0);
 	
@@ -81,8 +81,8 @@ public class UDPControl {
 					else 
 						throw new IllegalStateException("'PacketReceivedListener' not set");
 				
-				} catch (IOException e) {
-					Log.e(VoicerHelper.TAG, "Erro de IO: " + e);					
+				} catch (Exception e) {
+					Log.e(VoicerHelper.TAG, "Erro na thread Read: " + e);					
 				}
 			}
 		}
@@ -114,7 +114,7 @@ public class UDPControl {
 					
 					sSocket.send(dp);
 					
-				} catch (Throwable e) {
+				} catch (Exception e) {
 					Log.e(VoicerHelper.TAG, "Throwable: " + e);
 				}
 			}			
@@ -125,7 +125,7 @@ public class UDPControl {
 	 * 
 	 * @param pct
 	 */
-	public void send(DataPacket pct) {
+	private void send(DataPacket pct) {
 		try {
 			pct.setSsrc(this.localParticipant.getSsrc());
 			pct.setSequenceNumber(this.sequence.incrementAndGet());
