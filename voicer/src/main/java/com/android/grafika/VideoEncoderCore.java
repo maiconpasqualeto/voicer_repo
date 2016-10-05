@@ -55,12 +55,11 @@ public class VideoEncoderCore {
     private MediaMuxer mMuxer;
     private MediaCodec mEncoder;
     private MediaCodec.BufferInfo mBufferInfo;
-    private int mTrackIndex;
     private boolean mMuxerStarted;
     
     private UDPControl control; 
-    private long ant;
-    private byte[] nalHeader = new byte[2];
+    private byte[] fulHeader = new byte[2];
+    private byte[] decodedHeader = new byte[5];
 
 
     /**
@@ -101,7 +100,7 @@ public class VideoEncoderCore {
         /*mMuxer = new MediaMuxer(outputFile.toString(),
                 MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);*/
  
-        mTrackIndex = -1;
+        //mTrackIndex = -1;
         mMuxerStarted = false;
     }
 
@@ -186,18 +185,10 @@ public class VideoEncoderCore {
                             " was null");
                 }
 
-                if ((mBufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-                    // The codec config data was pulled out and fed to the muxer when we got
-                    // the INFO_OUTPUT_FORMAT_CHANGED status.  Ignore it.
-                    if (VERBOSE) Log.d(TAG, "ignoring BUFFER_FLAG_CODEC_CONFIG");
-                    mBufferInfo.size = 0;
-                }
-
                 if (mBufferInfo.size != 0) {
                     if (!mMuxerStarted) {
                         throw new RuntimeException("muxer hasn't started");
                     }
-
                     // adjust the ByteBuffer values to match BufferInfo (not needed?)
                     encodedData.position(mBufferInfo.offset);
                     encodedData.limit(mBufferInfo.offset + mBufferInfo.size);
@@ -208,54 +199,72 @@ public class VideoEncoderCore {
                     
                     long pst = mBufferInfo.presentationTimeUs * 90 / 1000;
                     
-                    //Log.d(TAG, ">> pst " + pst);
-                    if (length > MAX_PACK_SIZE) {
-                    	int remains = length;
+                    
+                    if ((mBufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+                        // The codec config data was pulled out and fed to the muxer when we got
+                        // the INFO_OUTPUT_FORMAT_CHANGED status.  Ignore it.
+                        if (VERBOSE) Log.d(TAG, "ignoring BUFFER_FLAG_CODEC_CONFIG");
+                        
+                        byte[] pct = new byte[encodedData.remaining() + 1];                    	
+                    	encodedData.get(pct, 1, encodedData.remaining());
+                    	pct[0] = (byte) ((pct[5] & 0x60) & 0xFF); // STAP-A indicator NRI
+                    	pct[0] += 24; 
                     	
-                    	nalHeader[0] = (byte) ((0x1F & 0x60) & 0xFF); // FU indicator NRI
-                    	nalHeader[0] += 28;
-                    	
-                    	// Set FU-A header
-                    	nalHeader[1] = (byte) (0x1F & 0x1F);  // FU header type
-                    	nalHeader[1] += 0x80; // Start bit
-                    	
-                    	while ( remains > MAX_PACK_SIZE ) {
-	                    	byte[] pct = new byte[MAX_PACK_SIZE];
-	                    	// Set FU-A indicator
-	                    	pct[0] = nalHeader[0];
-	                    	pct[1] = nalHeader[1];
+                    	control.sendData(pct, pst, false, PayloadType.VIDEO);
+                        
+                        mBufferInfo.size = 0;
+                    } else 
+                    	if (length > MAX_PACK_SIZE) {
+	                    	int remains = length;
 	                    	
-	                    	encodedData.get(pct, 2, MAX_PACK_SIZE - 2);
+	                    	encodedData.mark();
+	                    	encodedData.get(decodedHeader, 0, 5);
+	                    	encodedData.reset();
+	                    	
+	                    	// Set FU-A indicator
+	                    	fulHeader[0] = (byte) ((decodedHeader[4] & 0x60) & 0xFF); // FU indicator NRI
+	                    	fulHeader[0] += 28;
+	            			
+	                    	fulHeader[1] = (byte) (decodedHeader[4] & 0x1f); // FU header type
+	                    	fulHeader[1] += 0x80; // Start bit
+	                    	
+	                    	while ( remains > MAX_PACK_SIZE ) {
+		                    	byte[] pct = new byte[MAX_PACK_SIZE];
+		                    	
+		                    	encodedData.get(pct, 2, MAX_PACK_SIZE - 2);
+		                    	
+		                    	pct[0] = fulHeader[0];
+		                    	pct[1] = fulHeader[1];
+		                    	
+		                    	control.sendData(pct, pst, false, PayloadType.VIDEO);
+		                    	
+		                    	// after firt pack, set s byte
+		                    	fulHeader[1] = (byte) (fulHeader[1] & 0x7F);
+		                    	
+		                    	remains -= (MAX_PACK_SIZE -2);
+	                    	}
+	                    	
+	                    	byte[] pct = new byte[remains + 2];
+	                    	fulHeader[1] += 0x40; // set end bit
+	                    	pct[0] = fulHeader[0];
+	                    	pct[1] = fulHeader[1];
+	                    	
+	                    	encodedData.get(pct, 2, remains);
 	                    	
 	                    	control.sendData(pct, pst, false, PayloadType.VIDEO);
 	                    	
-	                    	// after firt pack, set s byte	                    	
-	                    	nalHeader[1] = (byte) (nalHeader[1] & 0x7F);
-	                    	
-	                    	remains -= (MAX_PACK_SIZE -2);
-                    	}
-                    	
-                    	byte[] pct = new byte[remains + 2];
-                    	nalHeader[1] += 0x40; // set end bit                    	
-                    	pct[0] = nalHeader[0];
-                    	pct[1] = nalHeader[1];
-                    	                    	
-                    	encodedData.get(pct, 2, remains);
-                    	
-                    	control.sendData(pct, pst, false, PayloadType.VIDEO);
-                    	
-                    } else {
-                    	byte[] pct = new byte[encodedData.remaining() + 1];                    	
-                    	encodedData.get(pct, 1, encodedData.remaining());
-                    	pct[0] = (byte) (pct[5] & 0x1F); // NAL header - copia o tipo do byte 5 do stream
-                    	control.sendData(pct, pst, false, PayloadType.VIDEO);
-                    }
-                    
-                    /*if (VERBOSE) {                    	
-                        Log.d(TAG, ">> sent " + mBufferInfo.size + " bytes to muxer, ts=" +
-                                mBufferInfo.presentationTimeUs);
-                        Log.d(TAG, ">> HEX " + VoicerHelper.converteDadosBinariosParaStringHexa(pct));                        
-                    }*/
+	                    } else {
+	                    	byte[] pct = new byte[encodedData.remaining() + 1];                    	
+	                    	encodedData.get(pct, 1, encodedData.remaining());
+	                    	pct[0] = (byte) (pct[5] & 0x1F); // NAL header - copia o tipo do byte 5 do stream
+	                    	control.sendData(pct, pst, false, PayloadType.VIDEO);
+	                    }
+	                    
+	                    /*if (VERBOSE) {                    	
+	                        Log.d(TAG, ">> sent " + mBufferInfo.size + " bytes to muxer, ts=" +
+	                                mBufferInfo.presentationTimeUs);
+	                        Log.d(TAG, ">> HEX " + VoicerHelper.converteDadosBinariosParaStringHexa(pct));                        
+	                    }*/
                 }
 
                 mEncoder.releaseOutputBuffer(encoderStatus, false);

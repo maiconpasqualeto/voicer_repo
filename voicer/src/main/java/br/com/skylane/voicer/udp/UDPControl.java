@@ -8,6 +8,7 @@ import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.biasedbit.efflux.packet.DataPacket;
@@ -102,6 +103,7 @@ public class UDPControl {
 						return;
 					
 					DataPacket pct = fila.take();
+					
 					byte[] dados = pct.encode().array();
 					DatagramPacket dp = new DatagramPacket(dados, dados.length, 
 							localParticipant.getDataDestination());
@@ -164,16 +166,18 @@ public class UDPControl {
 	public void close() {
 		fila.clear();
 		
+		if (sSocket != null) {
+			sSocket.close();
+			sSocket = null;			
+		}
+		
 		if (readThread != null)
 			readThread.interrupt();
 		
 		if (sendThread != null)
 			sendThread.interrupt();
 		
-		if (sSocket != null) {
-			sSocket.close();
-			sSocket = null;			
-		}
+		
 	}
 
 	public void setListener(PacketReceivedListener listener) {

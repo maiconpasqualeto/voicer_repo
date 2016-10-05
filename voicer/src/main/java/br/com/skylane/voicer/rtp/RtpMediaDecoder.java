@@ -38,6 +38,7 @@ import android.media.MediaFormat;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import br.com.skylane.voicer.VoicerHelper;
 import br.com.skylane.voicer.udp.PacketReceivedListener;
 
 /**
@@ -306,8 +307,8 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
         //byte[] header_pps = {0, 0, 0, 1, 104, -50, 56, -128}; // -samsung
         byte[] header_pps = {0, 0, 0, 1, 104, -50, 60, -128}; // -asus
         
-        format.setByteBuffer("csd-0", ByteBuffer.wrap(header_sps));
-        format.setByteBuffer("csd-1", ByteBuffer.wrap(header_pps));
+        /*format.setByteBuffer("csd-0", ByteBuffer.wrap(header_sps));
+        format.setByteBuffer("csd-1", ByteBuffer.wrap(header_pps));*/
         
         format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, SURFACE_WIDTH * SURFACE_HEIGHT);
         format.setInteger(MediaFormat.KEY_DURATION, 12600000);
@@ -389,6 +390,25 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
                 }
 			break;
 		case STAPA:
+			
+			inputBufIndex = decoder.dequeueInputBuffer(-1);
+            inputBuf = inputBuffers[inputBufIndex];
+            inputBuf.clear();
+            
+            int idx = VoicerHelper.indexOf(dp.getDataAsArray(), new byte[]{0,0,0,1}, 4);
+            
+            inputBuf.put(dp.getDataAsArray(), 1, idx - 1);
+            
+			playerThread.decodeFrame(inputBuf, dp.getTimestamp(), 0, inputBufIndex);
+			
+			inputBufIndex = decoder.dequeueInputBuffer(-1);
+            inputBuf = inputBuffers[inputBufIndex];
+            inputBuf.clear();
+            
+            inputBuf.put(dp.getDataAsArray(), idx, dp.getDataSize() - idx);
+            
+            playerThread.decodeFrame(inputBuf, dp.getTimestamp(), 0, inputBufIndex);
+            
 			break;
 		case UNKNOWN:
 			break;
