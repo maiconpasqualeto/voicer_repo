@@ -19,6 +19,8 @@ package com.android.grafika;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
@@ -60,6 +62,8 @@ public class VideoEncoderCore {
     private UDPControl control; 
     private byte[] fulHeader = new byte[2];
     private byte[] decodedHeader = new byte[5];
+    private Timer t = new Timer();
+    private byte[] spsPPS;
 
 
     /**
@@ -205,12 +209,20 @@ public class VideoEncoderCore {
                         // the INFO_OUTPUT_FORMAT_CHANGED status.  Ignore it.
                         if (VERBOSE) Log.d(TAG, "ignoring BUFFER_FLAG_CODEC_CONFIG");
                         
-                        byte[] pct = new byte[encodedData.remaining() + 1];                    	
-                    	encodedData.get(pct, 1, encodedData.remaining());
-                    	pct[0] = (byte) ((pct[5] & 0x60) & 0xFF); // STAP-A indicator NRI
-                    	pct[0] += 24; 
+                        TimerTask tt = new TimerTask() {
+							@Override
+							public void run() {
+								control.sendData(spsPPS, System.nanoTime() / 1000, false, PayloadType.VIDEO);
+							}
+						};
+						t.schedule(tt, 3000, 3000);
+                        
+                        spsPPS = new byte[encodedData.remaining() + 1];
+                    	encodedData.get(spsPPS, 1, encodedData.remaining());
+                    	spsPPS[0] = (byte) ((spsPPS[5] & 0x60) & 0xFF); // STAP-A indicator NRI
+                    	spsPPS[0] += 24; 
                     	
-                    	control.sendData(pct, pst, false, PayloadType.VIDEO);
+                    	control.sendData(spsPPS, pst, false, PayloadType.VIDEO);
                         
                         mBufferInfo.size = 0;
                     } else 

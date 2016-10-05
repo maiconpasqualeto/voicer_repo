@@ -105,10 +105,10 @@ public class HelloAndroidActivity extends Activity
         try {
 	        
         	InetAddress ipSource = InetAddress.getByName("127.0.0.1");
-	        InetAddress ipTarget = InetAddress.getByName("192.168.25.131");
+	        InetAddress ipTarget = InetAddress.getByName("192.168.25.24"); //samsung
 	        //InetAddress ipTarget = InetAddress.getByName("192.168.25.33");
 	        
-	        mControl = new UDPControl(RtpParticipant.createReceiver("192.168.21.109", 5006, 5007));
+	        mControl = new UDPControl(RtpParticipant.createReceiver("192.168.25.24", 5006, 5007));
 	        mControl.setListener(md);
 	        
 	        mRenderer = new CameraSurfaceRenderer(mCameraHandler, sVideoEncoder, mControl);

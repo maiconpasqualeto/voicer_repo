@@ -83,6 +83,9 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 	private long currentTimestamp = 0;
     private int lastSequenceNumber = 0;
     private boolean lastSequenceNumberIsValid = false;
+    private boolean decoderInicializado = false;
+    private boolean pacoteInicial = false;
+    
     //private long startMs;
     // If this stream is set, use it to trace packet arrival data
     //private OutputStream traceOutputStream = null;
@@ -198,11 +201,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
         public void run() {
             // Wait a little bit to make sure the RtpClientThread had the opportunity to start
             // and create the rtpMediaExtractor
-            try {
-                sleep(500);
-            } catch (InterruptedException e) {
-            }
-
+            
             MediaFormat mediaFormat = getMediaFormat();
             String mime = mediaFormat.getString(MediaFormat.KEY_MIME);
             if (mime.startsWith("video/")) {
@@ -216,8 +215,14 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
             }
 
             decoder.start();
+            
             inputBuffers = decoder.getInputBuffers();
             outputBuffers = decoder.getOutputBuffers();
+            
+            try {
+                sleep(500);
+            } catch (InterruptedException e) {
+            }
             
             //startMs = System.currentTimeMillis();
         }
@@ -231,7 +236,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
         public void decodeFrame(ByteBuffer inputBuf, long timestamp, int offset, int inputBufIndex) {
             
         	try {
-        		
+        		        		
 	        	/*int inputBufIndex = decoder.dequeueInputBuffer(-1);
 	            ByteBuffer inputBuf = inputBuffers[inputBufIndex];
 	            inputBuf.clear();
@@ -320,7 +325,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
         format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);*/
         
         return format;
-}    
+    }    
 
 	@Override
 	public void processDatagramPacket(DatagramPacket pct) {
@@ -335,11 +340,14 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 			lastSequenceNumber = dp.getSequenceNumber();
             return; // droppack
 		}
-		
+				
 		H264Packet h264Packet = new H264Packet(dp);
+		
+		if ( !decoderInicializado && !h264Packet.h264NalType.equals(NalType.STAPA) )
+			return;
+		
 		switch (h264Packet.h264NalType){
 			case FULL:
-								
 				inputBufIndex = decoder.dequeueInputBuffer(-1);
 	            inputBuf = inputBuffers[inputBufIndex];
 	            inputBuf.clear();
@@ -391,6 +399,8 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 			break;
 		case STAPA:
 			
+			decoderInicializado = true;
+			
 			inputBufIndex = decoder.dequeueInputBuffer(-1);
             inputBuf = inputBuffers[inputBufIndex];
             inputBuf.clear();
@@ -415,7 +425,7 @@ public class RtpMediaDecoder implements SurfaceHolder.Callback, PacketReceivedLi
 		default:
 			break;
 		}
-		
+				
 		lastSequenceNumber = dp.getSequenceNumber();
 		lastSequenceNumberIsValid = true;
 		
