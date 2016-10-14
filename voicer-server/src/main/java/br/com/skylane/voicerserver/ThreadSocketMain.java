@@ -21,25 +21,7 @@ public class ThreadSocketMain implements Runnable {
 	@Override
 	public void run() {
 		
-		try {
-			
-			serverSocketUDP = new DatagramSocket(new InetSocketAddress(IP_LOCAL, PORTA));
 		
-				
-			byte[] buffEntrada = new byte[1024];
-			
-			DatagramPacket receivePacket = new DatagramPacket(buffEntrada, buffEntrada.length);
-			serverSocketUDP.receive(receivePacket);
-			
-			new ThreadUdpReceiver(serverSocketUDP, receivePacket).startaProcessamentoPacote();
-			
-		
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			serverSocketUDP.close();
-		}
 		
 	}
 	

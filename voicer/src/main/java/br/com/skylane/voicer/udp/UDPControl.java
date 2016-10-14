@@ -6,16 +6,16 @@ package br.com.skylane.voicer.udp;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
+import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import com.biasedbit.efflux.packet.DataPacket;
-import com.biasedbit.efflux.participant.RtpParticipant;
 
 import android.util.Log;
 import br.com.skylane.voicer.VoicerHelper;
+
+import com.biasedbit.efflux.packet.DataPacket;
+import com.biasedbit.efflux.participant.RtpParticipant;
 
 /**
  * @author maicon
@@ -28,7 +28,7 @@ public class UDPControl {
 	protected final AtomicInteger sequence = new AtomicInteger(0);
 	
 	private MulticastSocket sSocket;
-	private BlockingQueue<DataPacket> fila = new LinkedBlockingQueue<DataPacket>();  
+	private BlockingQueue<DatagramPacket> fila = new LinkedBlockingQueue<DatagramPacket>();  
 	private Thread readThread;
 	private Thread sendThread;
 	private PacketReceivedListener listener; 
@@ -102,11 +102,7 @@ public class UDPControl {
 					if (sSocket == null)
 						return;
 					
-					DataPacket pct = fila.take();
-					
-					byte[] dados = pct.encode().array();
-					DatagramPacket dp = new DatagramPacket(dados, dados.length, 
-							localParticipant.getDataDestination());
+					DatagramPacket dp = fila.take();
 					
 					/*String str = "";
 					for (int i=0; i<dados.length; i++)
@@ -127,11 +123,8 @@ public class UDPControl {
 	 * 
 	 * @param pct
 	 */
-	private void send(DataPacket pct) {
+	public void send(DatagramPacket pct) {
 		try {
-			pct.setSsrc(this.localParticipant.getSsrc());
-			pct.setSequenceNumber(this.sequence.incrementAndGet());
-						
 			//Log.d(VoicerHelper.TAG, ">> pct_time " + pct.getTimestamp());
 			
 			fila.put(pct);
@@ -155,8 +148,20 @@ public class UDPControl {
         packet.setData(data);
         packet.setMarker(marked);
         packet.setPayloadType(payloadType.getValue());
+        packet.setSsrc(this.localParticipant.getSsrc());
+        packet.setSequenceNumber(this.sequence.incrementAndGet());
         
-        send(packet);
+        byte[] dados = packet.encode().array();
+        
+        try {
+        
+        	DatagramPacket dp = new DatagramPacket(dados, dados.length, 
+				localParticipant.getDataDestination());
+        	send(dp);
+        	
+        } catch (SocketException e) {
+        	Log.e(VoicerHelper.TAG, "Erro ao criar Datagrama" + e);
+        }
     }
     
 	

@@ -3,10 +3,12 @@
  */
 package br.com.skylane.voicer;
 
+import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.util.Enumeration;
 
 import com.biasedbit.efflux.participant.RtpParticipant;
@@ -16,6 +18,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -47,25 +50,38 @@ public class TestActivity extends Activity {
 		} catch (UnknownHostException e) {
 			Log.e(VoicerHelper.TAG, "Erro ao pegar o ip", e);
 		}
-		control = new UDPControl(RtpParticipant.createReceiver("127.0.0.1", 5006, 5007));
+		control = new UDPControl(RtpParticipant.createReceiver("192.168.21.58", 5006, 5007));
         
         
         final EditText txtReceive = (EditText) findViewById(R.id.txtReceive);
-        txtReceive.append(getIpAddress());
+        txtReceive.append(getIpAddress().getHostAddress());
         
         final EditText txtSend = (EditText) findViewById(R.id.txtSend);
         
-        Log.d(VoicerHelper.TAG, getIpAddress());
+        Log.d(VoicerHelper.TAG, getIpAddress().getHostAddress());
         
         Button btnSend = (Button) findViewById(R.id.btnSend);
         btnSend.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				
-				String msg = txtSend.getText().toString();
-				//UdpPacket pct = new UdpPacket(UdpPacket.AUDIO, msg.getBytes());
-				//control.send(pct);
-				
+				try {
+					ByteBuffer bb = ByteBuffer.allocate(20);
+					bb.put(getIpAddress().getAddress());
+					bb.putShort((short)5006);
+					bb.flip();
+					
+					byte[] bytes = new byte[bb.remaining()];
+					bb.get(bytes, 0, bytes.length);
+					
+					DatagramPacket dp = new DatagramPacket(bytes, bytes.length);
+					
+					dp.setAddress(InetAddress.getByName("54.94.172.118"));
+					dp.setPort(1050);
+					control.send(dp);
+					
+				} catch (UnknownHostException e) {
+					Log.e(VoicerHelper.TAG, "Erro ao enviar o pacote", e);
+				}
 			}
         });
         
@@ -81,8 +97,8 @@ public class TestActivity extends Activity {
         registerReceiver(rec, intf);
 	};
 	
-	private String getIpAddress() {
-        String ip = "";
+	private InetAddress getIpAddress() {
+        InetAddress ip = null;
         try {
             Enumeration<NetworkInterface> enumNetworkInterfaces = NetworkInterface
                     .getNetworkInterfaces();
@@ -95,8 +111,7 @@ public class TestActivity extends Activity {
                     InetAddress inetAddress = enumInetAddress.nextElement();
 
                     if (inetAddress.isSiteLocalAddress()) {
-                        ip += "SiteLocalAddress: "
-                                + inetAddress.getHostAddress() + "\n";
+                        ip = inetAddress;
                     }
 
                 }
@@ -105,8 +120,7 @@ public class TestActivity extends Activity {
 
         } catch (SocketException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
-            ip += "Something Wrong! " + e.toString() + "\n";
+            e.printStackTrace();            
         }
 
         return ip;
