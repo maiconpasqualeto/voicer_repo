@@ -3,7 +3,6 @@
  */
 package br.com.skylane.voicer;
 
-import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -11,20 +10,16 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.Enumeration;
 
-import com.biasedbit.efflux.participant.RtpParticipant;
-
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import br.com.skylane.voicer.udp.UDPControl;
-import br.com.skylane.voicer.udp.UdpPacket;
+import br.com.skylane.voicer.tcp.TcpControl;
 
 /**
  * @author maicon
@@ -33,8 +28,8 @@ import br.com.skylane.voicer.udp.UdpPacket;
 public class TestActivity extends Activity {
 	
 	private BroadcastReceiver rec;
-	private UDPControl control; 
-
+	//private UDPControl control; 
+	private TcpControl control;
 	
 	protected void onCreate(android.os.Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -50,8 +45,8 @@ public class TestActivity extends Activity {
 		} catch (UnknownHostException e) {
 			Log.e(VoicerHelper.TAG, "Erro ao pegar o ip", e);
 		}
-		control = new UDPControl(RtpParticipant.createReceiver("192.168.21.58", 5006, 5007));
-        
+		//control = new UDPControl(RtpParticipant.createReceiver("192.168.21.58", 5006, 5007));
+        control = new TcpControl();
         
         final EditText txtReceive = (EditText) findViewById(R.id.txtReceive);
         txtReceive.append(getIpAddress().getHostAddress());
@@ -64,24 +59,17 @@ public class TestActivity extends Activity {
         btnSend.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				try {
-					ByteBuffer bb = ByteBuffer.allocate(20);
-					bb.put(getIpAddress().getAddress());
-					bb.putShort((short)5006);
-					bb.flip();
+				
+				ByteBuffer bb = ByteBuffer.allocate(20);
+				bb.put(getIpAddress().getAddress());
+				bb.putShort((short)5006);
+				bb.flip();
+				
+				byte[] bytes = new byte[bb.remaining()];
+				bb.get(bytes, 0, bytes.length);
+				
+				control.enviaSolicitacao(bytes);
 					
-					byte[] bytes = new byte[bb.remaining()];
-					bb.get(bytes, 0, bytes.length);
-					
-					DatagramPacket dp = new DatagramPacket(bytes, bytes.length);
-					
-					dp.setAddress(InetAddress.getByName("54.94.172.118"));
-					dp.setPort(1050);
-					control.send(dp);
-					
-				} catch (UnknownHostException e) {
-					Log.e(VoicerHelper.TAG, "Erro ao enviar o pacote", e);
-				}
 			}
         });
         
@@ -130,6 +118,6 @@ public class TestActivity extends Activity {
 	protected void onDestroy() {
 		super.onDestroy();
 		unregisterReceiver(rec);
-		control.close();
+		
 	}
 }

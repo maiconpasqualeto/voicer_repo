@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -14,16 +16,16 @@ import java.util.concurrent.Executors;
  */
 public class VoicerServer {
 	
-	private static final int PORTA = 1050; // porta padrao
+	private static final int PORTA = 5100; // porta padrao
 	private static final String IP_LOCAL = "172.31.20.178";
-	//private static final String IP_LOCAL = "localhost";
-	private static DatagramSocket serverSocketUDP;
+	//private static DatagramSocket serverSocketUDP;
 	private static final int MTU = 1536;
+	
 	
 	public static void main(String[] args) {
 		
 		ExecutorService pool = Executors.newFixedThreadPool(15);
-		try {
+		/*try {
 			
 			serverSocketUDP = new DatagramSocket(new InetSocketAddress(IP_LOCAL, PORTA));
 			
@@ -49,7 +51,33 @@ public class VoicerServer {
 			} 
 		}
 		
-		serverSocketUDP.close();
+		serverSocketUDP.close();*/
+		
+		ServerSocket serverSocket = null;
+		
+		try {
+			
+			try {
+			
+				serverSocket = new ServerSocket(PORTA);
+				
+				while (!Thread.interrupted()) {
+					Socket s = serverSocket.accept();
+					pool.execute(new ThreadTcpReceiver(s));
+				}
+			
+			} finally {
+				serverSocket.close();
+			}
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		
+		
+		
+		
 		pool.shutdown();
 		
 	}
